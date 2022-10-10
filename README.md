@@ -29,10 +29,11 @@ cd backend-django
 pip install virtualenv
 virtualenv -p py env
 source ./env/Scripts/activate
-pip install requirements.txt 
+pip install -r requirements.txt 
 ~~~
+
 * MacOS
-~~~
+~~~sh
 cd backend-django
 python3 -m venv venv
 alias avenv=source\ venv/bin/activate
@@ -40,4 +41,12 @@ avenv
 pip install -r requirements.txt 
 ~~~
 
-
+* Linux
+~~~sh
+cd backend-django
+python3 -m pip install --upgrade pip
+pip install virtualenv
+virtualenv env --python=python3
+source env/bin/activate
+pip install -r requirements.txt 
+~~~
