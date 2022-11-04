@@ -55,7 +55,7 @@ se creara el modelo de Asociado, que cuenta con los atributos: documentoAsociado
 direccion, ciudad, fechanacimento, ocupacion, telefono.
 """
 class Asociado(Usuario): 
-    documentoAsociado = models.models.IntegerField(_("DocumentoA"), primary_key=True)
+    documentoAsociado = models.models.IntegerField(_("DocumentoA"), primary_key=True, on_delete=models.CASCADE)
     #correoAsociado = models.CharField(max_length=70)
     nombre = models.CharField(max_length=50)
     direccion = models.CharField(max_length=70)
@@ -72,6 +72,56 @@ class Asociado(Usuario):
 
     def __str__(self):
         return self.documentoAsociado 
+
+"""
+Author: Juan Felipe Osorio
+se crea el modelo de Ahorro, que cuenta con los atributos: idAhorro (Primary Key), idAsociado (Foreign Key), fecha (DateTimeField), 
+descripcion (varchar), monto (float), firmaDigital (varchar), y tipoConsignacion (varchar).
+"""
+class Ahorro(models.Model):
+    idAhorro = models.AutoField(primary_key=True)
+    idAsociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    fecha = models.DateTimeField(auto_now=False, auto_now_add=False)
+    descripcion = models.CharField(max_length=50)
+    monto = models.FloatField()
+    firmaDigital = models.CharField(max_length=50)
+    tipoConsignacion = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.idAhorro
+
+
+"""
+se crea el modelo de Multa que es un modelo para establecer las multas a los usuarios que no cumplan con los requisitos de la cooperativa, 
+cuenta con los atributos: idMulta (primary Key), idAsociado (Foreign Key), motivo (varchar), fecha (DateTimeField), costo (int), estadoMulta (booleano).
+"""
+class Multa(models.Model):
+    idMulta = models.AutoField(primary_key=True)
+    idAsociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    motivo = models.CharField(max_length=50)
+    fecha = models.DateTimeField(auto_now=False, auto_now_add=False)
+    costo = models.IntegerField()
+    estadoMulta = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.idMulta
+
+
+"""
+Author: Juan Felipe Osorio
+se crea el modelo de CuotaManejo, que cuenta con los atributos: idCuotaManejo (primary Key), idAsociado (Foreign Key),
+fechaComieno (DateTimeField), FechaFin (DateTimeField), tasaInteres (int). 
+"""
+class CuotaManejo(models.Model):
+    idCuotaManejo = models.AutoField(primary_key=True)
+    idAsociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    fechaComienzo = models.DateTimeField(auto_now=False, auto_now_add=False)
+    fechaFin = models.DateTimeField(auto_now=False, auto_now_add=False)
+    tasaInteres = models.IntegerField()
+
+    def __str__(self):
+        return self.idCuotaManejo
+
 
 """
 Author: Juan Felipe Osorio    
@@ -135,6 +185,10 @@ class Reunion(models.Model):
         motivo = models.CharField(max_length=50)
         tipoReunion = models.CharField(max_length=50)
         asistencia = models.BooleanField(_("Asistencia"))
+
+        #se añade esta clase, para que se establezca la jerarquia de la tabla siendo una clase padre de las clases hijas (Virtual, Presencial).
+        class Meta: 
+            abstract = True
     
         def __str__(self):
             return self.idReunion
