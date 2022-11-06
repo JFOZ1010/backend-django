@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'api' #Se ingresa la carpeta de nuestra aplicación
 ]
 
 MIDDLEWARE = [
@@ -89,10 +90,15 @@ WSGI_APPLICATION = 'MAGOS_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+#Creando una base de datos local para pruebas
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'Desarrollo2',
+        'USER': 'postgres',
+        'PASSWORD':'danilo',
+        'HOST':'localhost',
+        'PORT':'',
     }
 }
 
