@@ -155,7 +155,7 @@ class Prestamo(models.Model):
     codeudor = models.ForeignKey(Asociado, on_delete=models.CASCADE)
     deudor = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     monto = models.IntegerField("Monto")
-    fecha = models.DateField("Fecha"), auto_now=False, auto_now_add=False)
+    fecha = models.DateField(("Fecha"), auto_now=False, auto_now_add=False)
     estadoPrestamo = models.BooleanField("EstadoPrestamo")
     interes = models.FloatField("Interes")
     comision = models.IntegerField("Comision")
@@ -180,7 +180,7 @@ class Reunion(models.Model):
     
         idReunion = models.CharField(max_length=50, primary_key=True)
         asociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
-        fecha = models.DateField("Fecha"), auto_now=False, auto_now_add=False)
+        fecha = models.DateField(("Fecha"), auto_now=False, auto_now_add=False)
         hora = models.CharField(max_length=50)
         motivo = models.CharField(max_length=50)
         tipoReunion = models.CharField(max_length=50)
@@ -211,7 +211,7 @@ Author: Juan Felipe Osorio
 se crea un modelo que es hijo del modelo Reunion, llamado reunionVirtual, que cuenta con una llave primaria llamada enlace, un sitio de tipo int serial. 
 """
 class ReunionVirtual(Reunion):
-    enlace = models.IntegerField("Enlace"), primary_key=True)
+    enlace = models.IntegerField(("Enlace"), primary_key=True)
 
     def __str__(self):
         return self.idReunion
