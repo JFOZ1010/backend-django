@@ -35,7 +35,7 @@ class Usuario(models.Model):
     correoUsr = models.CharField(max_length=70)
     admin = models.BooleanField(default=False)
     contrasena = models.CharField(max_length=50)
-    fechaNacimiento = models.models.DateTimeField(_("fechaNacimiento"), auto_now=False, auto_now_add=False)
+    fechaNacimiento = models.models.DateTimeField(("fechaNacimiento"), auto_now=False, auto_now_add=False)
 
 
     def clean(self):
@@ -55,7 +55,7 @@ se creara el modelo de Asociado, que cuenta con los atributos: documentoAsociado
 direccion, ciudad, fechanacimento, ocupacion, telefono.
 """
 class Asociado(Usuario): 
-    documentoAsociado = models.models.IntegerField(_("DocumentoA"), primary_key=True, on_delete=models.CASCADE)
+    documentoAsociado = models.models.IntegerField(("DocumentoA"), primary_key=True, on_delete=models.CASCADE)
     #correoAsociado = models.CharField(max_length=70)
     nombre = models.CharField(max_length=50)
     direccion = models.CharField(max_length=70)
@@ -130,7 +130,7 @@ asociadoVinculado que es una llave foranea de Asociado, correoCliente, nombre, y
 """
 class Cliente(Usuario):
 
-    documentoCliente = models.IntegerField(_("DocumentoC"), primary_key=True)
+    documentoCliente = models.IntegerField(("DocumentoC"), primary_key=True)
     asociadoVinculado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
     #correoCliente = models.CharField(max_length=70)
     nombre = models.CharField(max_length=50)
@@ -154,11 +154,11 @@ class Prestamo(models.Model):
     solicitudPrestamo = models.CharField(max_length=50, primary_key=True)
     codeudor = models.ForeignKey(Asociado, on_delete=models.CASCADE)
     deudor = models.ForeignKey(Cliente, on_delete=models.CASCADE)
-    monto = models.IntegerField(_("Monto"))
-    fecha = models.DateField(_("Fecha"), auto_now=False, auto_now_add=False)
-    estadoPrestamo = models.BooleanField(_("EstadoPrestamo"))
-    interes = models.FloatField(_("Interes"))
-    comision = models.IntegerField(_("Comision"))
+    monto = models.IntegerField("Monto")
+    fecha = models.DateField("Fecha"), auto_now=False, auto_now_add=False)
+    estadoPrestamo = models.BooleanField("EstadoPrestamo")
+    interes = models.FloatField("Interes")
+    comision = models.IntegerField("Comision")
 
     #metodo para verificar que el monto sea valido
     def montoValido(self):
@@ -180,11 +180,11 @@ class Reunion(models.Model):
     
         idReunion = models.CharField(max_length=50, primary_key=True)
         asociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
-        fecha = models.DateField(_("Fecha"), auto_now=False, auto_now_add=False)
+        fecha = models.DateField("Fecha"), auto_now=False, auto_now_add=False)
         hora = models.CharField(max_length=50)
         motivo = models.CharField(max_length=50)
         tipoReunion = models.CharField(max_length=50)
-        asistencia = models.BooleanField(_("Asistencia"))
+        asistencia = models.BooleanField("Asistencia")
 
         #se añade esta clase, para que se establezca la jerarquia de la tabla siendo una clase padre de las clases hijas (Virtual, Presencial).
         class Meta: 
@@ -200,7 +200,7 @@ un sitio de tipo varchar, y un costo de tipo integer.
 """
 class ReunionPresencial(Reunion):
     sitio = models.CharField(max_length=50)
-    costo = models.IntegerField(_("Costo"))
+    costo = models.IntegerField("Costo")
 
     def __str__(self):
         return self.idReunion
@@ -211,7 +211,7 @@ Author: Juan Felipe Osorio
 se crea un modelo que es hijo del modelo Reunion, llamado reunionVirtual, que cuenta con una llave primaria llamada enlace, un sitio de tipo int serial. 
 """
 class ReunionVirtual(Reunion):
-    enlace = models.IntegerField(_("Enlace"), primary_key=True)
+    enlace = models.IntegerField("Enlace"), primary_key=True)
 
     def __str__(self):
         return self.idReunion
