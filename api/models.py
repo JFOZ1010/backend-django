@@ -32,7 +32,7 @@ def validate_date(birthdate):
 
 #se creara el modelo de usuario, que cuenta con los atrivbutos: idUsuario, correoUsr, admin (booleano), y una contraseña. 
 class Usuario(models.Model):
-    idUsuario = models.AutoField(primary_key=True, max_length=100, blank=True)
+    idUsuario = models.AutoField(primary_key=True, blank=True)
     correoUsr = models.CharField(max_length=70)
     admin = models.BooleanField(default=False)
     contrasena = models.CharField(max_length=50)
@@ -57,7 +57,7 @@ se creara el modelo de Asociado, que cuenta con los atributos: documentoAsociado
 direccion, ciudad, fechanacimento, ocupacion, telefono.
 """
 class Asociado(Usuario): 
-    documentoAsociado = models.IntegerField( primary_key=True, blank=True, max_length=10, null=True)
+    documentoAsociado = models.IntegerField( primary_key=True, blank=True, null=False,unique=True)
     #correoAsociado = models.CharField(max_length=70)
     nombre = models.CharField(max_length=50)
     direccion = models.CharField(max_length=70)
@@ -132,7 +132,7 @@ asociadoVinculado que es una llave foranea de Asociado, correoCliente, nombre, y
 """
 class Cliente(Usuario):
 
-    documentoCliente = models.IntegerField(("DocumentoC"), primary_key=True, blank=True, max_length=10, null=True)
+    documentoCliente = models.IntegerField(("DocumentoC"), primary_key=True, blank=True, null=False,unique=True)
     asociadoVinculado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
     #correoCliente = models.CharField(max_length=70)
     nombre = models.CharField(max_length=50)
