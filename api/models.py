@@ -57,7 +57,7 @@ se creara el modelo de Asociado, que cuenta con los atributos: documentoAsociado
 direccion, ciudad, fechanacimento, ocupacion, telefono.
 """
 class Asociado(Usuario): 
-    documentoAsociado = models.IntegerField( primary_key=True, blank=True, max_length=10)
+    documentoAsociado = models.IntegerField( primary_key=True, blank=True, max_length=10, null=True)
     #correoAsociado = models.CharField(max_length=70)
     nombre = models.CharField(max_length=50)
     direccion = models.CharField(max_length=70)
@@ -132,7 +132,7 @@ asociadoVinculado que es una llave foranea de Asociado, correoCliente, nombre, y
 """
 class Cliente(Usuario):
 
-    documentoCliente = models.IntegerField(("DocumentoC"), primary_key=True, blank=True, max_length=10)
+    documentoCliente = models.IntegerField(("DocumentoC"), primary_key=True, blank=True, max_length=10, null=True)
     asociadoVinculado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
     #correoCliente = models.CharField(max_length=70)
     nombre = models.CharField(max_length=50)
