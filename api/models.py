@@ -132,7 +132,7 @@ asociadoVinculado que es una llave foranea de Asociado, correoCliente, nombre, y
 """
 class Cliente(Usuario):
 
-    documentoCliente = models.IntegerField(("DocumentoC"), primary_key=True)
+    documentoCliente = models.IntegerField(("DocumentoC"), primary_key=True, blank=True, max_length=10)
     asociadoVinculado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
     #correoCliente = models.CharField(max_length=70)
     nombre = models.CharField(max_length=50)
