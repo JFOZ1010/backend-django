@@ -1,13 +1,14 @@
 import re
 
 from django.db import models
-from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
-from django.utils import timezone
+#from django.contrib.auth.models import User
+#from django.core.exceptions import ValidationError
+#from django.utils import timezone
 
 # Create your models here.
 
 #metodo global, que valide que el correo sea valido
+'''
 def validate_email(email):
     if not re.match(r"^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$", email):
         raise ValidationError("Invalid email")
@@ -27,7 +28,7 @@ def validate_date(birthdate):
         raise ValidationError("Invalid birthdate")
     
     return birthdate
-
+'''
 
 #se creara el modelo de usuario, que cuenta con los atrivbutos: idUsuario, correoUsr, admin (booleano), y una contraseña. 
 class Usuario(models.Model):
@@ -35,17 +36,18 @@ class Usuario(models.Model):
     correoUsr = models.CharField(max_length=70)
     admin = models.BooleanField(default=False)
     contrasena = models.CharField(max_length=50)
-    fechaNacimiento = models.models.DateTimeField(("fechaNacimiento"), auto_now=False, auto_now_add=False)
+    fechaNacimiento = models.DateTimeField(("fechaNacimiento"), auto_now=False, auto_now_add=False)
 
-
+    '''
     def clean(self):
         self.correoUsr = validate_email(self.correoUsr)
         self.fechaNacimiento = validate_date(self.fechaNacimiento)
-
+    '''
+    '''
     class Meta:
         abstract = True
         #db_table = "Usuario"
-
+    '''
     def __str__(self):
         return self.correoUsr
 
@@ -55,7 +57,7 @@ se creara el modelo de Asociado, que cuenta con los atributos: documentoAsociado
 direccion, ciudad, fechanacimento, ocupacion, telefono.
 """
 class Asociado(Usuario): 
-    documentoAsociado = models.models.IntegerField(("DocumentoA"), primary_key=True, on_delete=models.CASCADE)
+    documentoAsociado = models.IntegerField( primary_key=True)
     #correoAsociado = models.CharField(max_length=70)
     nombre = models.CharField(max_length=50)
     direccion = models.CharField(max_length=70)
@@ -63,13 +65,13 @@ class Asociado(Usuario):
     #fechaNacimiento = models.models.DateTimeField(_("fechaNacimiento"), auto_now=False, auto_now_add=False)
     ocupacion = models.CharField(max_length=50)
     telefono = models.CharField(max_length=50) #telefono con varchar, no necesitamos hacer nada con ese integer como telefono. 
-
+    '''
     def clean(self):
         #self.correoAsociado = validate_email(self.correoAsociado)
         self.documentoAsociado = validate_document(self.documentoAsociado)
         #self.fechaNacimiento = validate_date(self.fechaNacimiento)
         
-
+    '''
     def __str__(self):
         return self.documentoAsociado 
 
@@ -135,11 +137,11 @@ class Cliente(Usuario):
     #correoCliente = models.CharField(max_length=70)
     nombre = models.CharField(max_length=50)
     telefono = models.CharField(max_length=50)
-
+    '''
     def clean(self):
         #self.correoCliente = validate_email(self.correoCliente)
         self.documentoCliente = validate_document(self.documentoCliente)
-
+    '''
     def __str__(self):
         return self.documentoCliente
 
@@ -187,9 +189,11 @@ class Reunion(models.Model):
         asistencia = models.BooleanField("Asistencia")
 
         #se añade esta clase, para que se establezca la jerarquia de la tabla siendo una clase padre de las clases hijas (Virtual, Presencial).
+
+        '''
         class Meta: 
             abstract = True
-    
+        '''
         def __str__(self):
             return self.idReunion
 
