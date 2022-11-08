@@ -23,7 +23,7 @@ def validate_document(document):
 
 #metodo global, para validar la fecha de nacimiento
 def validate_date(birthdate):
-    if birthdate < timezone.now().date():
+    if birthdate > timezone.now().date():
         raise ValidationError("Invalid birthdate")
     
     return birthdate
