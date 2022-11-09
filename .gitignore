@@ -4,3 +4,5 @@ api/__pycache__/
 api/migrations/__pycache__/
 MAGOS_api/__pycache__/
 notas.txt
+.pg_service.conf
+.my_pgpass

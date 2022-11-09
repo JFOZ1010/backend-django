@@ -1,20 +1,25 @@
 from django.shortcuts import render
 from optparse import Values
-from django import views
+from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.shortcuts import render
+from django.contrib.auth.models import User
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from .models import Usuario
+from api.models import Usuario, Rol
 import json
 from django.db.utils import IntegrityError
+from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
+from api.serializer import UserSerializer
+from django.db.models.functions import Lower
+
 # Create your views here.
 
 # creacion de una vista que implementara los requests
 
 
-class DesarrolloView(View):
+class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     # Metodo que nos servira para saltar el error de csrf
     @method_decorator(csrf_exempt)
@@ -23,40 +28,25 @@ class DesarrolloView(View):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
+    def test_func(self):
+        return self.request.user.usuario.rol == Rol.ADMIN
+
     # GET
-    def get(self, request, idUsuario=0):
+    def get(self, request):
 
         try:
-            # Busqueda por id
-            if (not (idUsuario == 0)):
+            list = User.objects.select_related(
+                'usuario').order_by(Lower('first_name'))
 
-                usuarios = list(Usuario.objects.filter(
-                    idUsuario=idUsuario).values())
-
-                if len(usuarios) > 0:
-                    # dado que por id solo se busca un usuario, ese usuario estara en posicion 1
-                    usuarioGet = usuarios[0]
-                    datos = {'mensaje': 'Usuario encontrado',
-                             'Usuario': usuarioGet}
-                else:
-                    datos = {'Mensaje': 'Usuario no encontrado'}
-                return JsonResponse(datos)
-
-            # Sino se da el id, se da la lista de usuarios
-            else:
-                usuarios = list(Usuario.objects.values())
-
-                if len(usuarios) > 0:
-                    datos = {'mensaje ': 'Lista de Usuarios',
-                             'Usuarios': usuarios}
-                else:
-                    datos = {'mensaje': 'Usuarios no encontrados'}
-
-                return JsonResponse(datos)
-
+            users = []
+            for user in list:
+                u: User = user
+                if u.usuario.rol != Rol.PAR:
+                    users.append(UserSerializer(u).data)
+            return JsonResponse({"data": users}, safe=False)
         except Exception as e:
             print(repr(e))
-            return JsonResponse({'msg': 'Ocurrio un error'})
+            return JsonResponse({"msg": 'an error occured'})
 
     # POST:Registro
     def post(self, request):
@@ -68,16 +58,29 @@ class DesarrolloView(View):
             # jason data
             # Convierte los datos que se registran en un diccionario python
             jd = json.loads(request.body)
-            # print(jd)
+            print(jd)
 
-            responde = Usuario.objects.create(
-                correoUsr=jd['correoUsr'],
-                admin=jd['admin'],
-                contrasena=jd['contrasena']
-            )
+            if (jd['type'] == 'asociado'):
 
-            datos = {'Mensaje': 'Registro exitoso'}
-            return JsonResponse(datos)
+                responde = Usuario.objects.create(
+                    correoUsr=jd['correoUsr'],
+                    admin=jd['admin'],
+                    contrasena=jd['contrasena'],
+                    fechaNacimiento=jd['fechaNacimiento']
+                )
+
+                datos = {'Mensaje': 'Registro exitoso'}
+                return JsonResponse(response)
+
+            elif (jd['action'] == 'cliente'):
+                responde = Usuario.objects.create(
+                    correoUsr=jd['correoUsr'],
+                    admin=jd['admin'],
+                    contrasena=jd['contrasena']
+                )
+
+                datos = {'Mensaje': 'Registro exitoso'}
+                return JsonResponse(datos)
 
         except IntegrityError as ie:
             print(repr(ie))
