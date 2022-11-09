@@ -1,2 +1,6 @@
 .vscode/
 env/
+api/__pycache__/
+api/migrations/__pycache__/
+MAGOS_api/__pycache__/
+notas.txt
