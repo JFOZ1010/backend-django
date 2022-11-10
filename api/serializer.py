@@ -19,7 +19,7 @@ class UserSerializer(serializers.Serializer):
 
     def to_representation(self, instance: User):
         ret = {}
-        p: Usuario = instance.profile
+        p: Usuario = instance.usuario
         ret['nombre'] = instance.first_name
         ret['apellido'] = instance.last_name
         ret['email'] = instance.username

@@ -13,6 +13,8 @@ from django.db.utils import IntegrityError
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from api.serializer import UserSerializer
 from django.db.models.functions import Lower
+from django.contrib import auth
+from django.utils import timezone
 
 # Create your views here.
 
@@ -29,7 +31,11 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
         return super().dispatch(request, *args, **kwargs)
 
     def test_func(self):
-        return self.request.user.usuario.rol == Rol.ADMIN
+        try:
+            return self.request.user.usuario.rol == Rol.ADMIN
+        except Exception as e:
+            print(repr(e))
+            return JsonResponse({"msg": 'Falló el test'})
 
     # GET
     def get(self, request):
@@ -46,7 +52,7 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
             return JsonResponse({"data": users}, safe=False)
         except Exception as e:
             print(repr(e))
-            return JsonResponse({"msg": 'an error occured'})
+            return JsonResponse({"msg": 'Ocurrio un error'})
 
     # POST:Registro
     def post(self, request):
@@ -54,44 +60,27 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
         response = {}
 
         try:
-            # print(request.body)
-            # jason data
-            # Convierte los datos que se registran en un diccionario python
-            jd = json.loads(request.body)
-            print(jd)
-
-            if (jd['type'] == 'asociado'):
-
-                responde = Usuario.objects.create(
-                    correoUsr=jd['correoUsr'],
-                    admin=jd['admin'],
-                    contrasena=jd['contrasena'],
-                    fechaNacimiento=jd['fechaNacimiento']
-                )
-
-                datos = {'Mensaje': 'Registro exitoso'}
-                return JsonResponse(response)
-
-            elif (jd['action'] == 'cliente'):
-                responde = Usuario.objects.create(
-                    correoUsr=jd['correoUsr'],
-                    admin=jd['admin'],
-                    contrasena=jd['contrasena']
-                )
-
-                datos = {'Mensaje': 'Registro exitoso'}
-                return JsonResponse(datos)
-
+            content = json.loads(request.body.decode('utf-8'))
+            action = content["action"]
+            dataUser = {
+                "username": content["email"], "first_name": content["nombre"], "last_name": content["apellido"],
+                "is_active": bool(content["enabled"]), "email": content["email"], "password": content["password"],
+            }
+            dataUsuario = {
+                "rol": content["rol"], "fechaNacimiento": content["fechaNacimiento"]
+            }
+            if action == 'create':
+                response = createUser(dataUser, dataUsuario)
+            else:
+                response = modifyUser(dataUser, dataUsuario)
         except IntegrityError as ie:
             print(repr(ie))
-            response['status'] = False
-            response['msg'] = 'Usuario existente con ese correo'
-
+            response["status"] = False
+            response["msg"] = "Ya existe un usuario con dicho correo"
         except Exception as e:
+            response["status"] = False
             print(repr(e))
-            response['status'] = False
-            response['msg'] = 'Formato incorrecto'
-
+            response["msg"] = "Formato Incorrecto"
         return JsonResponse(response)
 
     #PUT: Actualización
@@ -130,3 +119,74 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
             datos = {'Mensaje': 'Usuario no encontrado'}
 
         return JsonResponse(datos)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class Auth(View):
+
+    def post(self, request):
+        try:
+            res = {}
+            data = json.loads(request.body.decode('utf-8'))
+            username = data["email"]
+            password = data["password"]
+            user = auth.authenticate(username=username, password=password)
+            res["status"] = user is not None
+            print(user)
+            if res["status"]:
+                res["msg"] = UserSerializer(user).data
+                auth.login(request, user)
+            else:
+                res["msg"] = "No pudo logearse"
+            return JsonResponse(res)
+        except Exception as e:
+            print(repr(e))
+            return JsonResponse({"err": "User not authenticated"})
+
+    def delete(self, request):
+        try:
+            auth.logout(request)
+            return JsonResponse({"res": True})
+        except Exception as e:
+            print(repr(e))
+            return JsonResponse({"res": False, "message": "Ocurrio un error en el logout"})
+
+
+def createUser(dataUser, dataUsuario):
+    dataUser["date_joined"] = timezone.now()
+    print(dataUsuario)
+    up = Usuario(**dataUsuario)
+    u = User(**dataUser)
+    up.user = u
+    u.usuario = up
+    if not u.usuario.checkData():
+        return {"status": False, "msg": u.usuario.getErrors()}
+    u = User.objects.create_user(**dataUser)
+    for attr, value in dataUsuario.items():
+        setattr(u.usuario, attr, value)
+    u.save()
+    return {"status": True, "msg": "Usuario creado"}
+
+
+def modifyUser(dataUser, dataUsuario):
+    try:
+        newPass = dataUser.pop("password", None)
+        u: User = User.objects.get(username=dataUser["username"])
+        User.objects.filter(username=dataUser["username"])
+        if newPass != "" or newPass is None:
+            u.password = newPass
+        for attr, value in dataUser.items():
+            setattr(u, attr, value)
+        for attr, value in dataUsuario.items():
+            setattr(u.usuario, attr, value)
+        if u.usuario.checkData():
+            if newPass != "" or newPass is None:
+                u.set_password(newPass)
+            u.save()
+            return {"status": True, "msg": "Usuario modificado correctamente"}
+        else:
+            return {"status": False, "msg": u.usuario.getErrors()}
+
+    except Exception as e:
+        print(repr(e))
+        return {"status": False, "msg": "No existe el usuario"}
