@@ -28,7 +28,7 @@ Dependency: python3
 cd backend-django
 pip install virtualenv
 virtualenv -p py env
-source ./env/Scripts/activate
+./env/Scripts/activate
 pip install -r requirements.txt 
 ~~~
 

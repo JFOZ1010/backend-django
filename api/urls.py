@@ -1,10 +1,12 @@
 from django.urls import path
-from .views import DesarrolloView
+import re
+from . import views
 
-#Agrego las rutas a una carpeta usuarios raiz
-urlpatterns=[
-    path('usuarios/',DesarrolloView.as_view(),name='usuarios_list'),
-    #Para poder hacer consultas con el id del usr
-    path('usuarios/<int:idUsuario>',DesarrolloView.as_view(),name='usuario_id'),
-
+# Agrego las rutas a una carpeta usuarios raiz
+urlpatterns = [
+    path('usuarios', views.DesarrolloView.as_view(), name='usuarios_list'),
+    path('auth', views.Auth.as_view(), name="auth"),
+    # Cosultas con id de usuario
+    path(r"^usuarios/(?P<value>\d+)/$",
+         views.DesarrolloView.as_view(), name='usuario_id'),
 ]
