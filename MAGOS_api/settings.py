@@ -96,10 +96,10 @@ WSGI_APPLICATION = 'MAGOS_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Desarrollo2',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'localhost',
+        'NAME': 'desarrollo2',
+        'USER': 'magos_ds2',
+        'PASSWORD': '4fb4E5Wu2MzIREvvDHvAvGaOK0DokkXI',
+        'HOST': 'dpg-cdonuila499b1llpnd8g-a.ohio-postgres.render.com',
         'PORT': '',
     }
 }
