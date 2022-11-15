@@ -30,6 +30,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 SESSION_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SECURE = True
+CORS_ALLOW_CREDENTIALS = True
 
 ALLOWED_HOSTS = [
     'localhost'
@@ -55,7 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api'
+    'api.apps.ApiConfig'
 ]
 
 MIDDLEWARE = [

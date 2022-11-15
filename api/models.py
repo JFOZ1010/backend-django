@@ -83,7 +83,7 @@ direccion, ciudad, fechanacimento, ocupacion, telefono.
 
 
 class Asociado(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=True)
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     # correoAsociado = models.CharField(max_length=70)
     documentoAsociado = models.CharField(max_length=10, primary_key=True)
     nombre = models.CharField(max_length=50)
