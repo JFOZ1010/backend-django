@@ -6,7 +6,7 @@ from django.utils.decorators import method_decorator
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from api.models import Usuario, Rol
 import json
 from django.db.utils import IntegrityError
@@ -124,10 +124,19 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
 @method_decorator(csrf_exempt, name='dispatch')
 class Auth(View):
 
+    def get(self, request):
+        res = {}
+        res["status"] = request.user.is_authenticated
+        print(repr(res["status"]))
+        if res["status"]:
+            res["msg"] = UserSerializer(request.user).data
+        return JsonResponse(res)
+
     def post(self, request):
         try:
             res = {}
             data = json.loads(request.body.decode('utf-8'))
+            print(repr(data))
             username = data["email"]
             password = data["password"]
             user = auth.authenticate(username=username, password=password)
