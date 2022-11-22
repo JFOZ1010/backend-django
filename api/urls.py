@@ -10,6 +10,19 @@ urlpatterns = [
     path(r"^usuarios/(?P<value>\d+)/$",
          views.DesarrolloView.as_view(), name='usuario_id'),
 
-    #Vista de ahorros
-    path('ahorros', views.AhorrosView.as_view(), name='ahorros_list'),
+    ##################################### URL's AHORROS. ######################################    
+    #path('ahorros', Ahorros.as_view(), name='ahorros_list'),
+    path('ahorros/create', views.AhorrosCreate.as_view(), name='ahorros_create'),
+    path('ahorros/all', views.AhorrosList.as_view(), name='ahorros_list'),
+    path('ahorros/delete/<int:pk>', views.AhorrosDelete.as_view(), name='ahorros_delete'),
+    path('ahorros/update/<int:pk>', views.AhorrosUpdate.as_view(), name='ahorros_update'),
 ]
+
+
+"""
+    path('New/create/',addNews.as_view()),
+    path('New/all/',allNew.as_view()),
+    path('New/delete/<str:pk>/',DeleteNew.as_view(), name="delete"),
+    path('New/update/<str:pk>/',UpdateNew.as_view(), name = "update"),
+    path('New/get/<str:pk>',NewGet.as_view(), name = 'newGet'),
+"""

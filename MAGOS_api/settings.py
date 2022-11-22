@@ -30,7 +30,7 @@ SESSION_COOKIE_SECURE = True
 CORS_ALLOW_CREDENTIALS = True
 
 ALLOWED_HOSTS = [
-    'localhost'
+    '*'
 ]
 
 # Methods allowed by the api

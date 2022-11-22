@@ -16,7 +16,9 @@ from django.db.models.functions import Lower
 from django.contrib import auth
 from django.utils import timezone
 
-#modulos nuevos que importo del framework DRF. 
+#modulos nuevos que importo del framework DRF.
+from rest_framework import generics
+from rest_framework import permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import serializers 
@@ -199,56 +201,103 @@ def modifyUser(dataUser, dataUsuario):
 
 """SESION DEDICADA A AHORROS, Y TODO LO RELACIONADO CON ESTE"""
 
+
 #crear una clase based view para ahorros que herede de la clase View, y tome el serializador de ahorros
+
+"""
 @method_decorator(csrf_exempt, name='dispatch')
 class AhorrosView(View):
+    #GET: Obtener
     def get(self, request):
-        ahorros = list(AhorroSerializer.objects.all().values())
+        ahorros = list(Ahorro.objects.all().values())
         return JsonResponse(ahorros, safe=False)
+"""
 
+#CLASE CREAR
+class AhorrosCreate(generics.CreateAPIView):
+    serializer_class = AhorroSerializer
+    model = Ahorro
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = AhorroSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+        
+#CLASE LISTAR
+class AhorrosList(generics.ListAPIView):
+    serializer_class = AhorroSerializer
+    model = Ahorro
+    permission_classes = [permissions.AllowAny]
+    queryset = Ahorro.objects.all()
+
+
+
+
+#CLASE ACTUALIZAR
+class AhorrosUpdate(generics.UpdateAPIView):
+    serializer_class = AhorroSerializer
+    model = Ahorro
+    permission_classes = [permissions.AllowAny]
+    queryset = Ahorro.objects.all()
+
+    def put(self, request, pk):
+        ahorro = self.get_object(pk)
+        serializer = self.serializer_class(ahorro, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#CLASE ELIMINAR
+class AhorrosDelete(generics.DestroyAPIView):
+    serializer_class = AhorroSerializer
+    model = Ahorro
+    permission_classes = [permissions.AllowAny]
+    queryset = Ahorro.objects.all()
+
+    def delete(self, request, pk):
+        ahorro = self.get_object(pk)
+        ahorro.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    
+
+    
+#se creara un metodo POST que lo que hará será poder crear un ahorro, para poder mostrarlo en la vista de ahorros
+
+
+
+"""
     def post(self, request):
-        try:
-            res = {}
-            data = json.loads(request.body.decode('utf-8'))
-            ahorro = Ahorro(**data)
+
+        try: 
+            #se crea un diccionario de datos para poder almacenar los datos que se envian en el body
+            datos = {}
+            #se carga el body del request
+            jd = json.loads(request.body)
+            #se crea un objeto de tipo ahorro, y se le asignan los valores del diccionario
+            ahorro = Ahorro(
+                idAhorro = jd['idAhorro'],
+                fecha = jd['fecha'],
+                descripcion = jd['descripcion'],
+                monto = jd['monto'],
+                firmaDigital = jd['firmaDigital'],
+                tipoConsignacion = jd['tipoConsignacion'],
+            )
+            #se guarda el ahorro
             ahorro.save()
-            res["status"] = ahorro is not None
-            if res["status"]:
-                res["msg"] = AhorroSerializer(ahorro).data
-            else:
-                res["msg"] = "No se pudo crear el ahorro"
-            return JsonResponse(res)
+            print(ahorro)
+            #se le asigna al diccionario de datos el mensaje de exito
+            datos = {'Mensaje': 'Ahorro creado exitosamente'}
+            #se retorna el diccionario de datos
+            return JsonResponse(datos)
         except Exception as e:
             print(repr(e))
-            return JsonResponse({"err": "Ahorro not created"})
-
-    def put(self, request, idAhorro):
-        jd = json.loads(request.body.decode('utf-8'))
-        ahorros = list(AhorroSerializer.objects.filter(idAhorro=idAhorro).values())
-
-        if len(ahorros) > 0:
-            ahorroAct = AhorroSerializer.objects.get(idAhorro=idAhorro)
-
-            ahorroAct.nombreAhorro = jd['nombreAhorro']
-            ahorroAct.descripcionAhorro = jd['descripcionAhorro']
-            ahorroAct.montoAhorro = jd['montoAhorro']
-            ahorroAct.fechaAhorro = jd['fechaAhorro']
-            ahorroAct.save()
-
-            datos = {'Mensaje': 'Actualizacion exitosa'}
-
-        else:
-            datos = {'Mensaje': 'Ahorro no encontrado'}
-
-        return JsonResponse(datos)
-
-    def delete(self, request, idAhorro):
-        ahorros = list(AhorroSerializer.objects.filter(idAhorro=idAhorro).values())
-
-        if len(ahorros) > 0:
-            AhorroSerializer.objects.filter(idAhorro=idAhorro).delete()
-            datos = {'Mensaje': 'Ahorro Eliminado'}
-        else:
-            datos = {'Mensaje': 'Ahorro no encontrado'}
-
-        return JsonResponse(datos)
+            datos = {'Mensaje': 'Error al crear el ahorro'}
+            return JsonResponse(datos)
+    """

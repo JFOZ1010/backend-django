@@ -28,11 +28,18 @@ class UserSerializer(serializers.Serializer):
         return ret
 
 #crear el serializador para el ahorro 
+"""
+class AhorroSerializer(serializers.Serializer):
+    class Meta:
+        model = Ahorro
+        fields = ('__all__')
+"""
+    
+
 class AhorroSerializer(serializers.Serializer):
     
-    """
-        A serializer to display and create a Participant
-    """
+    #A serializer to display and create a Participant
+
     id = serializers.IntegerField()
     fecha = serializers.DateField()
     monto = serializers.FloatField()
@@ -46,13 +53,13 @@ class AhorroSerializer(serializers.Serializer):
     def to_representation(self, instance: Ahorro):
         ret = {}
         p: Ahorro = instance.ahorro
-        #ret['id'] = instance.id
+        ret['id'] = instance.id
         ret['fecha'] = instance.fecha
         ret['monto'] = instance.monto
         ret['asociado'] = instance.asociado
         ret['descripcion'] = instance.descripcion
         ret['tipo'] = instance.tipo
         ret['estado'] = instance.estado
-        #ret['enabled'] = instance.is_active
+       #ret['enabled'] = instance.is_active
 
-        return ret
+        return ret  
