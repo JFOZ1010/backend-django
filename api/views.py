@@ -21,7 +21,7 @@ from django.utils import timezone
 # creacion de una vista que implementara los requests
 
 
-class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
+class DesarrolloView(View):
 
     # Metodo que nos servira para saltar el error de csrf
     @method_decorator(csrf_exempt)
@@ -41,13 +41,12 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
     def get(self, request):
 
         try:
-            list = User.objects.select_related(
-                'usuario').order_by(Lower('first_name'))
+            list = User.objects.select_related('usuario')
 
             users = []
             for user in list:
                 u: User = user
-                if u.usuario.rol != Rol.PAR:
+                if u.usuario.rol != Rol.CLIENTE:
                     users.append(UserSerializer(u).data)
             return JsonResponse({"data": users}, safe=False)
         except Exception as e:

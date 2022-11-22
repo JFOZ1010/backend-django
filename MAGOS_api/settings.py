@@ -49,17 +49,38 @@ CORS_ALLOW_METHODS = [
 
 # Application definition
 
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'api.apps.ApiConfig',
-    'corsheaders',
-    'rest_framework'
+    'django.contrib.staticfiles'
 ]
+
+MY_APPS = [
+    'api.apps.ApiConfig'
+]
+
+DEPENDENCIES_APPS = [
+    'corsheaders',
+    'rest_framework',
+    'rest_framework.authtoken'
+]
+
+INSTALLED_APPS = DJANGO_APPS + MY_APPS + DEPENDENCIES_APPS
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication'
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated'
+    ]
+}
 
 
 MIDDLEWARE = [
