@@ -9,4 +9,7 @@ urlpatterns = [
     # Cosultas con id de usuario
     path(r"^usuarios/(?P<value>\d+)/$",
          views.DesarrolloView.as_view(), name='usuario_id'),
+
+    #Vista de ahorros
+    path('ahorros', views.AhorrosView.as_view(), name='ahorros_list'),
 ]

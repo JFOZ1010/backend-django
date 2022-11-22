@@ -7,14 +7,20 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from api.models import Usuario, Rol
+from api.models import Usuario, Rol, Asociado, Ahorro
 import json
 from django.db.utils import IntegrityError
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-from api.serializer import UserSerializer
+from api.serializer import UserSerializer, AhorroSerializer
 from django.db.models.functions import Lower
 from django.contrib import auth
 from django.utils import timezone
+
+#modulos nuevos que importo del framework DRF. 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import serializers 
+from rest_framework import status
 
 # Create your views here.
 
@@ -190,3 +196,59 @@ def modifyUser(dataUser, dataUsuario):
     except Exception as e:
         print(repr(e))
         return {"status": False, "msg": "No existe el usuario"}
+
+"""SESION DEDICADA A AHORROS, Y TODO LO RELACIONADO CON ESTE"""
+
+#crear una clase based view para ahorros que herede de la clase View, y tome el serializador de ahorros
+@method_decorator(csrf_exempt, name='dispatch')
+class AhorrosView(View):
+    def get(self, request):
+        ahorros = list(AhorroSerializer.objects.all().values())
+        return JsonResponse(ahorros, safe=False)
+
+    def post(self, request):
+        try:
+            res = {}
+            data = json.loads(request.body.decode('utf-8'))
+            ahorro = Ahorro(**data)
+            ahorro.save()
+            res["status"] = ahorro is not None
+            if res["status"]:
+                res["msg"] = AhorroSerializer(ahorro).data
+            else:
+                res["msg"] = "No se pudo crear el ahorro"
+            return JsonResponse(res)
+        except Exception as e:
+            print(repr(e))
+            return JsonResponse({"err": "Ahorro not created"})
+
+    def put(self, request, idAhorro):
+        jd = json.loads(request.body.decode('utf-8'))
+        ahorros = list(AhorroSerializer.objects.filter(idAhorro=idAhorro).values())
+
+        if len(ahorros) > 0:
+            ahorroAct = AhorroSerializer.objects.get(idAhorro=idAhorro)
+
+            ahorroAct.nombreAhorro = jd['nombreAhorro']
+            ahorroAct.descripcionAhorro = jd['descripcionAhorro']
+            ahorroAct.montoAhorro = jd['montoAhorro']
+            ahorroAct.fechaAhorro = jd['fechaAhorro']
+            ahorroAct.save()
+
+            datos = {'Mensaje': 'Actualizacion exitosa'}
+
+        else:
+            datos = {'Mensaje': 'Ahorro no encontrado'}
+
+        return JsonResponse(datos)
+
+    def delete(self, request, idAhorro):
+        ahorros = list(AhorroSerializer.objects.filter(idAhorro=idAhorro).values())
+
+        if len(ahorros) > 0:
+            AhorroSerializer.objects.filter(idAhorro=idAhorro).delete()
+            datos = {'Mensaje': 'Ahorro Eliminado'}
+        else:
+            datos = {'Mensaje': 'Ahorro no encontrado'}
+
+        return JsonResponse(datos)
