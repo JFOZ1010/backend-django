@@ -19,5 +19,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Para acceder a ver los usrs: http://127.0.0.1:8000/api/1.0/usuarios/
-    path('api/1.0/', include('api.urls'))
+    path('api/', include('api.urls'))
 ]

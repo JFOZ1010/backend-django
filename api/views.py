@@ -1,20 +1,22 @@
-from django.shortcuts import render
-from optparse import Values
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
-from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt
 from api.models import Usuario, Rol
 import json
 from django.db.utils import IntegrityError
-from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from api.serializer import UserSerializer
-from django.db.models.functions import Lower
 from django.contrib import auth
 from django.utils import timezone
+from .tokens import create_jwt_pair_for_user
+from django.contrib.auth import authenticate
+from rest_framework import generics, status
+from rest_framework.request import Request
 
 # Create your views here.
 
@@ -118,6 +120,35 @@ class DesarrolloView(View):
             datos = {'Mensaje': 'Usuario no encontrado'}
 
         return JsonResponse(datos)
+
+
+class ExampleAuth(APIView):
+    permission_classes = []
+
+    def post(self, request: Request):
+        username = request.data.get("email")
+        password = request.data.get("password")
+
+        print(repr(username))
+
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+
+            tokens = create_jwt_pair_for_user(user)
+
+            response = {"message": "Login Successfull", "tokens": tokens}
+            return Response(data=response, status=status.HTTP_200_OK)
+
+        else:
+            return Response(data={"message": "Invalid email or password"})
+
+    def get(self, request, format=None):
+        content = {
+            "user": str(request.user),
+            "auth": str(request.auth)
+        }
+        return content
 
 
 @method_decorator(csrf_exempt, name='dispatch')
