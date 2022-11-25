@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from api.models import Usuario
 from django.utils.translation import gettext as _
+from rest_framework.validators import ValidationError
 
 
 class UserSerializer(serializers.Serializer):
@@ -13,6 +14,15 @@ class UserSerializer(serializers.Serializer):
     rol = serializers.CharField()
     enabled = serializers.BooleanField()
     password = serializers.CharField(required=False)
+
+    def validate(self, attrs):
+
+        email_exists = User.objects.filter(email=attrs["email"]).exists()
+
+        if email_exists:
+            raise ValidationError('Email has already been used')
+
+        return super().validate(attrs)
 
     def update(self, instance, validated_data):
         instance.nombre = validated_data.get('nombre', instance.nombre)

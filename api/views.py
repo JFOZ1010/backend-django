@@ -23,7 +23,7 @@ from rest_framework.request import Request
 # creacion de una vista que implementara los requests
 
 
-class DesarrolloView(View):
+class Users(APIView):
 
     # Metodo que nos servira para saltar el error de csrf
     @method_decorator(csrf_exempt)
@@ -40,17 +40,27 @@ class DesarrolloView(View):
             return JsonResponse({"msg": 'Falló el test'})
 
     # GET
-    def get(self, request):
+    def get(self, request, id=0):
 
         try:
-            list = User.objects.select_related('usuario')
+            if id > 0:
+                myQuery = User.objects.select_related(
+                    'usuario').filter(id=id)
 
-            users = []
-            for user in list:
-                u: User = user
-                if u.usuario.rol != Rol.CLIENTE:
-                    users.append(UserSerializer(u).data)
-            return JsonResponse({"data": users}, safe=False)
+                myUser = {}
+                for user in myQuery:
+                    u: User = user
+                    myUser = (UserSerializer(u).data)
+
+                return Response(data=myUser, status=status.HTTP_200_OK)
+            else:
+                list = User.objects.select_related('usuario')
+                users = []
+                for user in list:
+                    u: User = user
+                    if u.usuario.rol != Rol.CLIENTE or Rol.ASOCIADO:
+                        users.append(UserSerializer(u).data)
+                return JsonResponse({"data": users}, safe=False)
         except Exception as e:
             print(repr(e))
             return JsonResponse({"msg": 'Ocurrio un error'})
@@ -84,13 +94,13 @@ class DesarrolloView(View):
             response["msg"] = "Formato Incorrecto"
         return JsonResponse(response)
 
-    #PUT: Actualización
+    # PUT: Actualización
     def put(self, request, idUsuario):
 
         # datos cargados
         # Diccionario de los datos de json enviados
         jd = json.loads(request.body)
-        #usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
+        # usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
         usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
 
         if len(usuarios) > 0:
@@ -109,7 +119,7 @@ class DesarrolloView(View):
 
         return JsonResponse(datos)
 
-    #DELETE: Eliminar
+    # DELETE: Eliminar
     def delete(self, request, idUsuario):
         usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
 
@@ -122,7 +132,7 @@ class DesarrolloView(View):
         return JsonResponse(datos)
 
 
-class ExampleAuth(APIView):
+class Auth(APIView):
     permission_classes = []
 
     def post(self, request: Request):
@@ -143,52 +153,12 @@ class ExampleAuth(APIView):
         else:
             return Response(data={"message": "Invalid email or password"})
 
-    def get(self, request, format=None):
+    def get(self, request: Response, format=None):
         content = {
             "user": str(request.user),
             "auth": str(request.auth)
         }
-        return content
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class Auth(View):
-
-    def get(self, request):
-        res = {}
-        res["status"] = request.user.is_authenticated
-        print(repr(res["status"]))
-        if res["status"]:
-            res["msg"] = UserSerializer(request.user).data
-        return JsonResponse(res)
-
-    def post(self, request):
-        try:
-            res = {}
-            data = json.loads(request.body.decode('utf-8'))
-            print(repr(data))
-            username = data["email"]
-            password = data["password"]
-            user = auth.authenticate(username=username, password=password)
-            res["status"] = user is not None
-            print(user)
-            if res["status"]:
-                res["msg"] = UserSerializer(user).data
-                auth.login(request, user)
-            else:
-                res["msg"] = "No pudo logearse"
-            return JsonResponse(res)
-        except Exception as e:
-            print(repr(e))
-            return JsonResponse({"err": "User not authenticated"})
-
-    def delete(self, request):
-        try:
-            auth.logout(request)
-            return JsonResponse({"res": True})
-        except Exception as e:
-            print(repr(e))
-            return JsonResponse({"res": False, "message": "Ocurrio un error en el logout"})
+        return Response(data=content, status=status.HTTP_200_OK)
 
 
 def createUser(dataUser, dataUsuario):
