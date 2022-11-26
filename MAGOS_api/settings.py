@@ -25,15 +25,18 @@ SECRET_KEY = 'django-insecure-=%=e++q4!e05n@x&e1&4*$@n&d&z1ul$-7u5i6l&+i!4quy6oh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#Erase all this block for production
+# Erase all this block for production
 CORS_ALLOW_ALL_ORIGINS = True
 SESSION_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SECURE = True
+CORS_ALLOW_CREDENTIALS = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost'
+]
 
-#Methods allowed by the api
+# Methods allowed by the api
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
@@ -53,7 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api' #Se ingresa la carpeta de nuestra aplicación
+    'api.apps.ApiConfig'
 ]
 
 MIDDLEWARE = [
@@ -90,15 +93,15 @@ WSGI_APPLICATION = 'MAGOS_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-#Creando una base de datos local para pruebas
+# Creando una base de datos local para pruebas
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Desarrollo2',
-        'USER': 'postgres',
-        'PASSWORD':'danilo',
-        'HOST':'localhost',
-        'PORT':'',
+        'NAME': 'desarrollo2',
+        'USER': 'magos_ds2',
+        'PASSWORD': '4fb4E5Wu2MzIREvvDHvAvGaOK0DokkXI',
+        'HOST': 'dpg-cdonuila499b1llpnd8g-a.ohio-postgres.render.com',
+        'PORT': '',
     }
 }
 
