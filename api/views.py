@@ -32,16 +32,9 @@ class Users(APIView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
-    def test_func(self):
-        try:
-            return self.request.user.usuario.rol == Rol.ADMIN
-        except Exception as e:
-            print(repr(e))
-            return JsonResponse({"msg": 'Falló el test'})
 
     # GET
     def get(self, request, id=0):
-
         try:
             if id > 0:
                 myQuery = User.objects.select_related(
@@ -58,7 +51,8 @@ class Users(APIView):
                 users = []
                 for user in list:
                     u: User = user
-                    if u.usuario.rol != Rol.CLIENTE or Rol.ASOCIADO:
+                    print(user)
+                    if u.usuario.rol != Rol.CLIENTE:
                         users.append(UserSerializer(u).data)
                 return JsonResponse({"data": users}, safe=False)
         except Exception as e:
@@ -119,7 +113,7 @@ class Users(APIView):
 
         return JsonResponse(datos)
 
-    # DELETE: Eliminar
+    # DELETE: Desactivar
     def delete(self, request, idUsuario):
         usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
 
@@ -135,6 +129,7 @@ class Users(APIView):
 class Auth(APIView):
     permission_classes = []
 
+    ### Login
     def post(self, request: Request):
         username = request.data.get("email")
         password = request.data.get("password")
@@ -153,6 +148,7 @@ class Auth(APIView):
         else:
             return Response(data={"message": "Invalid email or password"})
 
+    ###Validate
     def get(self, request: Response, format=None):
         content = {
             "user": str(request.user),
