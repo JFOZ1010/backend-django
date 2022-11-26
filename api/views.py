@@ -128,6 +128,7 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+#autentificador
 class Auth(View):
 
     def post(self, request):
