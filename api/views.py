@@ -1,33 +1,29 @@
-from django.shortcuts import render
-from optparse import Values
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
-from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from api.models import Usuario, Rol, Asociado, Ahorro
+from api.models import Usuario, Rol
 import json
 from django.db.utils import IntegrityError
-from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-from api.serializer import UserSerializer, AhorroSerializer
-from django.db.models.functions import Lower
+from api.serializer import UserSerializer
 from django.contrib import auth
 from django.utils import timezone
-
-#modulos nuevos que importo del framework DRF. 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import serializers 
-from rest_framework import status
+from .tokens import create_jwt_pair_for_user
+from django.contrib.auth import authenticate
+from rest_framework import generics, status
+from rest_framework.request import Request
 
 # Create your views here.
 
 # creacion de una vista que implementara los requests
 
 
-class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
+class Users(APIView):
 
     # Metodo que nos servira para saltar el error de csrf
     @method_decorator(csrf_exempt)
@@ -44,18 +40,27 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
             return JsonResponse({"msg": 'Falló el test'})
 
     # GET
-    def get(self, request):
+    def get(self, request, id=0):
 
         try:
-            list = User.objects.select_related(
-                'usuario').order_by(Lower('first_name'))
+            if id > 0:
+                myQuery = User.objects.select_related(
+                    'usuario').filter(id=id)
 
-            users = []
-            for user in list:
-                u: User = user
-                if u.usuario.rol != Rol.PAR:
-                    users.append(UserSerializer(u).data)
-            return JsonResponse({"data": users}, safe=False)
+                myUser = {}
+                for user in myQuery:
+                    u: User = user
+                    myUser = (UserSerializer(u).data)
+
+                return Response(data=myUser, status=status.HTTP_200_OK)
+            else:
+                list = User.objects.select_related('usuario')
+                users = []
+                for user in list:
+                    u: User = user
+                    if u.usuario.rol != Rol.CLIENTE or Rol.ASOCIADO:
+                        users.append(UserSerializer(u).data)
+                return JsonResponse({"data": users}, safe=False)
         except Exception as e:
             print(repr(e))
             return JsonResponse({"msg": 'Ocurrio un error'})
@@ -89,13 +94,13 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
             response["msg"] = "Formato Incorrecto"
         return JsonResponse(response)
 
-    #PUT: Actualización
+    # PUT: Actualización
     def put(self, request, idUsuario):
 
         # datos cargados
         # Diccionario de los datos de json enviados
         jd = json.loads(request.body)
-        #usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
+        # usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
         usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
 
         if len(usuarios) > 0:
@@ -114,7 +119,7 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         return JsonResponse(datos)
 
-    #DELETE: Eliminar
+    # DELETE: Eliminar
     def delete(self, request, idUsuario):
         usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
 
@@ -127,36 +132,33 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
         return JsonResponse(datos)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-#autentificador
-class Auth(View):
+class Auth(APIView):
+    permission_classes = []
 
-    def post(self, request):
-        try:
-            res = {}
-            data = json.loads(request.body.decode('utf-8'))
-            username = data["email"]
-            password = data["password"]
-            user = auth.authenticate(username=username, password=password)
-            res["status"] = user is not None
-            print(user)
-            if res["status"]:
-                res["msg"] = UserSerializer(user).data
-                auth.login(request, user)
-            else:
-                res["msg"] = "No pudo logearse"
-            return JsonResponse(res)
-        except Exception as e:
-            print(repr(e))
-            return JsonResponse({"err": "User not authenticated"})
+    def post(self, request: Request):
+        username = request.data.get("email")
+        password = request.data.get("password")
 
-    def delete(self, request):
-        try:
-            auth.logout(request)
-            return JsonResponse({"res": True})
-        except Exception as e:
-            print(repr(e))
-            return JsonResponse({"res": False, "message": "Ocurrio un error en el logout"})
+        print(repr(username))
+
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+
+            tokens = create_jwt_pair_for_user(user)
+
+            response = {"message": "Login Successfull", "tokens": tokens}
+            return Response(data=response, status=status.HTTP_200_OK)
+
+        else:
+            return Response(data={"message": "Invalid email or password"})
+
+    def get(self, request: Response, format=None):
+        content = {
+            "user": str(request.user),
+            "auth": str(request.auth)
+        }
+        return Response(data=content, status=status.HTTP_200_OK)
 
 
 def createUser(dataUser, dataUsuario):
@@ -197,59 +199,3 @@ def modifyUser(dataUser, dataUsuario):
     except Exception as e:
         print(repr(e))
         return {"status": False, "msg": "No existe el usuario"}
-
-"""SESION DEDICADA A AHORROS, Y TODO LO RELACIONADO CON ESTE"""
-
-#crear una clase based view para ahorros que herede de la clase View, y tome el serializador de ahorros
-@method_decorator(csrf_exempt, name='dispatch')
-class AhorrosView(View):
-    def get(self, request):
-        ahorros = list(AhorroSerializer.objects.all().values())
-        return JsonResponse(ahorros, safe=False)
-
-    def post(self, request):
-        try:
-            res = {}
-            data = json.loads(request.body.decode('utf-8'))
-            ahorro = Ahorro(**data)
-            ahorro.save()
-            res["status"] = ahorro is not None
-            if res["status"]:
-                res["msg"] = AhorroSerializer(ahorro).data
-            else:
-                res["msg"] = "No se pudo crear el ahorro"
-            return JsonResponse(res)
-        except Exception as e:
-            print(repr(e))
-            return JsonResponse({"err": "Ahorro not created"})
-
-    def put(self, request, idAhorro):
-        jd = json.loads(request.body.decode('utf-8'))
-        ahorros = list(AhorroSerializer.objects.filter(idAhorro=idAhorro).values())
-
-        if len(ahorros) > 0:
-            ahorroAct = AhorroSerializer.objects.get(idAhorro=idAhorro)
-
-            ahorroAct.nombreAhorro = jd['nombreAhorro']
-            ahorroAct.descripcionAhorro = jd['descripcionAhorro']
-            ahorroAct.montoAhorro = jd['montoAhorro']
-            ahorroAct.fechaAhorro = jd['fechaAhorro']
-            ahorroAct.save()
-
-            datos = {'Mensaje': 'Actualizacion exitosa'}
-
-        else:
-            datos = {'Mensaje': 'Ahorro no encontrado'}
-
-        return JsonResponse(datos)
-
-    def delete(self, request, idAhorro):
-        ahorros = list(AhorroSerializer.objects.filter(idAhorro=idAhorro).values())
-
-        if len(ahorros) > 0:
-            AhorroSerializer.objects.filter(idAhorro=idAhorro).delete()
-            datos = {'Mensaje': 'Ahorro Eliminado'}
-        else:
-            datos = {'Mensaje': 'Ahorro no encontrado'}
-
-        return JsonResponse(datos)
