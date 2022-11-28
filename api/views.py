@@ -32,8 +32,8 @@ class Users(APIView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
-
     # GET
+
     def get(self, request, id=0):
         try:
             if id > 0:
@@ -51,9 +51,7 @@ class Users(APIView):
                 users = []
                 for user in list:
                     u: User = user
-                    print(user)
-                    if u.usuario.rol != Rol.CLIENTE:
-                        users.append(UserSerializer(u).data)
+                    users.append(UserSerializer(u).data)
                 return JsonResponse({"data": users}, safe=False)
         except Exception as e:
             print(repr(e))
@@ -129,7 +127,7 @@ class Users(APIView):
 class Auth(APIView):
     permission_classes = []
 
-    ### Login
+    # Login
     def post(self, request: Request):
         username = request.data.get("email")
         password = request.data.get("password")
@@ -142,13 +140,14 @@ class Auth(APIView):
 
             tokens = create_jwt_pair_for_user(user)
 
-            response = {"message": "Login Successfull", "tokens": tokens}
+            response = {"message": "Login Successfull",
+                        "user": username, "tokens": tokens}
             return Response(data=response, status=status.HTTP_200_OK)
 
         else:
             return Response(data={"message": "Invalid email or password"})
 
-    ###Validate
+    # Validate
     def get(self, request: Response, format=None):
         content = {
             "user": str(request.user),
