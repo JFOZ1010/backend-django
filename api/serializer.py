@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from api.models import Usuario
+from api.models import Usuario, Prestamo
 from django.utils.translation import gettext as _
 from rest_framework.validators import ValidationError
 
@@ -45,3 +45,29 @@ class UserSerializer(serializers.Serializer):
         ret['enabled'] = instance.is_active
 
         return ret
+
+##Serializacion para prestamos
+
+class PrestamoSerializer(serializers.Serializer):
+    solicitudPrestamo = serializers.CharField()
+    codeudor = serializers.CharField()
+    deudor = serializers.CharField()   
+    monto = serializers.IntegerField()
+    fecha = serializers.DateField()
+    estadoPrestamo = serializers.BooleanField()
+    interes = serializers.FloatField()
+    comision = serializers.IntegerField()
+
+    def to_representation(self, instance: Prestamo):
+        ret = {}
+        p: Prestamo = instance.Prestamo
+        ret['solicitudPrestamo'] = instance.solicitudPrestamo
+        ret['codeudor'] = instance.codeudor
+        ret['deudor'] = instance.deudor
+        ret['monto'] = instance.monto
+        ret['fecha'] = instance.fecha
+        ret['estadoPrestamo'] = instance.estadoPrestamo
+        ret['interes'] = instance.interes
+        ret['comision'] = instance.comision
+
+        return ret  

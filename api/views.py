@@ -7,16 +7,17 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from api.models import Usuario, Rol
+from api.models import Usuario, Rol, Prestamo
 import json
 from django.db.utils import IntegrityError
-from api.serializer import UserSerializer
+from api.serializer import UserSerializer, PrestamoSerializer
 from django.contrib import auth
 from django.utils import timezone
 from .tokens import create_jwt_pair_for_user
 from django.contrib.auth import authenticate
 from rest_framework import generics, status
 from rest_framework.request import Request
+from rest_framework import permissions
 
 # Create your views here.
 
@@ -199,3 +200,32 @@ def modifyUser(dataUser, dataUsuario):
     except Exception as e:
         print(repr(e))
         return {"status": False, "msg": "No existe el usuario"}
+
+#View prestamos:
+
+class PrestamoCreate(APIView):
+    serializerClass= PrestamoSerializer 
+    model = Prestamo
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = PrestamoSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+##Pendiente: 
+class PrestamoList(APIView):
+    serializer_class = PrestamoSerializer
+    model = Prestamo
+    permission_classes = [permissions.AllowAny]
+    #queryset = Prestamo.objects.all()
+    def get(self, request):
+        prestamos= list(Prestamo.objects.values())
+        if len(prestamos)>0:
+            datos = {'mensaje':'exitoso', 'prestamos':prestamos}
+        else:
+            datos = {'mensaje':'prestamos no encontrados'}
+        return JsonResponse(datos)
+
