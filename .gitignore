@@ -6,3 +6,4 @@ MAGOS_api/__pycache__/
 notas.txt
 .pg_service.conf
 .my_pgpass
+venv/
