@@ -17,6 +17,7 @@ from .tokens import create_jwt_pair_for_user
 from django.contrib.auth import authenticate
 from rest_framework import generics, status
 from rest_framework.request import Request
+from django.db.models.functions import Lower
 
 # Create your views here.
 
@@ -37,22 +38,14 @@ class Users(APIView):
     def get(self, request, id=0):
         try:
             if id > 0:
-                myQuery = User.objects.select_related(
-                    'usuario').filter(id=id)
-
-                myUser = {}
-                for user in myQuery:
-                    u: User = user
-                    myUser = (UserSerializer(u).data)
-
-                return Response(data=myUser, status=status.HTTP_200_OK)
+                myUser = User.objects.all().filter(id=id)
+                print(myUser)
+                serializer = UserSerializer(myUser, many=True)
+                return JsonResponse(serializer.data, safe=False)
             else:
-                list = User.objects.select_related('usuario')
-                users = []
-                for user in list:
-                    u: User = user
-                    users.append(UserSerializer(u).data)
-                return JsonResponse({"data": users}, safe=False)
+                users = User.objects.all()
+                serializer = UserSerializer(users, many=True)
+                return JsonResponse(serializer.data, safe=False)
         except Exception as e:
             print(repr(e))
             return JsonResponse({"msg": 'Ocurrio un error'})
