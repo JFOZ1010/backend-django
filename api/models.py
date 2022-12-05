@@ -13,7 +13,25 @@ regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 # Create your models here.
 
 # metodo global, que valide que el correo sea valido
+'''
+def validate_email(email):
+    if not re.match(r"^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$", email):
+        raise ValidationError("Invalid email")
 
+    return email
+#metodo global, para validar que el documento sea valido
+def validate_document(document):
+    if not re.match(r"^[0-9]{8,10}$", document):
+        raise ValidationError("Invalid document")
+
+    return document
+#metodo global, para validar la fecha de nacimiento
+def validate_date(birthdate):
+    if birthdate > timezone.now().date():
+        raise ValidationError("Invalid birthdate")
+
+    return birthdate
+'''
 
 # se creara el modelo de usuario, que cuenta con los atrivbutos: idUsuario, correoUsr, admin (booleano), y una contraseña.
 
@@ -25,9 +43,10 @@ class Rol(models.TextChoices):
 
 
 class Usuario(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE)
     fechaNacimiento = models.DateField(
-        "fechaNacimiento", auto_now=False, auto_now_add=False, blank=True)
+        ("fechaNacimiento"), auto_now=False, auto_now_add=False, blank=True)
     rol = models.CharField(max_length=20, choices=Rol.choices, blank=True)
 
     def checkData(self):
@@ -43,10 +62,6 @@ class Usuario(models.Model):
             errors.append("Email invalido")
         return errors
 
-    class Meta:
-        verbose_name = 'Usuario'
-        verbose_name_plural = 'Usuarios'
-
     def __str__(self):
         return self.user.username + " " + self.rol
 
@@ -56,7 +71,7 @@ class Usuario(models.Model):
             Usuario.objects.create(user=instance)
 
     @receiver(post_save, sender=User)
-    def save_user_usuario(sender, instance, **kwargs):
+    def save_user_Usuario(sender, instance, **kwargs):
         instance.usuario.save()
 
 
@@ -68,7 +83,7 @@ direccion, ciudad, fechanacimento, ocupacion, telefono.
 
 
 class Asociado(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE) #COMENTADO SOLO PARA HACER PRUEBA DE AHORROS. 
     # correoAsociado = models.CharField(max_length=70)
     documentoAsociado = models.CharField(max_length=10, primary_key=True)
     nombre = models.CharField(max_length=50)
