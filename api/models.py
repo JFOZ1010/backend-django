@@ -56,7 +56,7 @@ class Usuario(models.Model):
             Usuario.objects.create(user=instance)
 
     @receiver(post_save, sender=User)
-    def save_user_Usuario(sender, instance, **kwargs):
+    def save_user_usuario(sender, instance, **kwargs):
         instance.usuario.save()
 
 

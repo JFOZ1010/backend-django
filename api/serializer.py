@@ -5,15 +5,11 @@ from django.utils.translation import gettext as _
 from rest_framework.validators import ValidationError
 
 
-class UserSerializer(serializers.Serializer):
+class UserSerializer(serializers.ModelSerializer):
 
-    id = serializers.IntegerField(read_only=True)
-    nombre = serializers.CharField()
-    apellido = serializers.CharField()
-    email = serializers.EmailField()
-    rol = serializers.CharField()
-    enabled = serializers.BooleanField()
-    password = serializers.CharField(required=False)
+    class Meta:
+        model = Usuario
+        fields = ['id', 'first_name', 'username', 'rol']
 
     def validate(self, attrs):
 
