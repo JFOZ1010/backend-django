@@ -1,27 +1,30 @@
-from django.shortcuts import render
-from optparse import Values
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
-from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt
 from api.models import Usuario, Rol
 import json
 from django.db.utils import IntegrityError
-from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from api.serializer import UserSerializer
-from django.db.models.functions import Lower
 from django.contrib import auth
 from django.utils import timezone
+from .tokens import create_jwt_pair_for_user
+from django.contrib.auth import authenticate
+from rest_framework import generics, status
+from rest_framework.request import Request
+from django.db.models.functions import Lower
 
 # Create your views here.
 
 # creacion de una vista que implementara los requests
 
 
-class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
+class Users(APIView):
 
     # Metodo que nos servira para saltar el error de csrf
     @method_decorator(csrf_exempt)
@@ -30,26 +33,19 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
-    def test_func(self):
-        try:
-            return self.request.user.usuario.rol == Rol.ADMIN
-        except Exception as e:
-            print(repr(e))
-            return JsonResponse({"msg": 'Falló el test'})
-
     # GET
-    def get(self, request):
 
+    def get(self, request, id=0):
         try:
-            list = User.objects.select_related(
-                'usuario').order_by(Lower('first_name'))
-
-            users = []
-            for user in list:
-                u: User = user
-                if u.usuario.rol != Rol.PAR:
-                    users.append(UserSerializer(u).data)
-            return JsonResponse({"data": users}, safe=False)
+            if id > 0:
+                myUser = User.objects.all().filter(id=id)
+                print(myUser)
+                serializer = UserSerializer(myUser, many=True)
+                return JsonResponse(serializer.data, safe=False)
+            else:
+                users = User.objects.all()
+                serializer = UserSerializer(users, many=True)
+                return JsonResponse(serializer.data, safe=False)
         except Exception as e:
             print(repr(e))
             return JsonResponse({"msg": 'Ocurrio un error'})
@@ -83,13 +79,13 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
             response["msg"] = "Formato Incorrecto"
         return JsonResponse(response)
 
-    #PUT: Actualización
+    # PUT: Actualización
     def put(self, request, idUsuario):
 
         # datos cargados
         # Diccionario de los datos de json enviados
         jd = json.loads(request.body)
-        #usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
+        # usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
         usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
 
         if len(usuarios) > 0:
@@ -108,7 +104,7 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         return JsonResponse(datos)
 
-    #DELETE: Eliminar
+    # DELETE: Desactivar
     def delete(self, request, idUsuario):
         usuarios = list(Usuario.objects.filter(idUsuario=idUsuario).values())
 
@@ -121,44 +117,36 @@ class DesarrolloView(LoginRequiredMixin, UserPassesTestMixin, View):
         return JsonResponse(datos)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class Auth(View):
+class Auth(APIView):
+    permission_classes = []
 
-    def get(self, request):
-        res = {}
-        res["status"] = request.user.is_authenticated
-        print(repr(res["status"]))
-        if res["status"]:
-            res["msg"] = UserSerializer(request.user).data
-        return JsonResponse(res)
+    # Login
+    def post(self, request: Request):
+        username = request.data.get("email")
+        password = request.data.get("password")
 
-    def post(self, request):
-        try:
-            res = {}
-            data = json.loads(request.body.decode('utf-8'))
-            print(repr(data))
-            username = data["email"]
-            password = data["password"]
-            user = auth.authenticate(username=username, password=password)
-            res["status"] = user is not None
-            print(user)
-            if res["status"]:
-                res["msg"] = UserSerializer(user).data
-                auth.login(request, user)
-            else:
-                res["msg"] = "No pudo logearse"
-            return JsonResponse(res)
-        except Exception as e:
-            print(repr(e))
-            return JsonResponse({"err": "User not authenticated"})
+        print(repr(username))
 
-    def delete(self, request):
-        try:
-            auth.logout(request)
-            return JsonResponse({"res": True})
-        except Exception as e:
-            print(repr(e))
-            return JsonResponse({"res": False, "message": "Ocurrio un error en el logout"})
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+
+            tokens = create_jwt_pair_for_user(user)
+
+            response = {"message": "Login Successfull",
+                        "user": username, "tokens": tokens}
+            return Response(data=response, status=status.HTTP_200_OK)
+
+        else:
+            return Response(data={"message": "Invalid email or password"})
+
+    # Validate
+    def get(self, request: Response, format=None):
+        content = {
+            "user": str(request.user),
+            "auth": str(request.auth)
+        }
+        return Response(data=content, status=status.HTTP_200_OK)
 
 
 def createUser(dataUser, dataUsuario):

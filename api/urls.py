@@ -4,9 +4,11 @@ from . import views
 
 # Agrego las rutas a una carpeta usuarios raiz
 urlpatterns = [
-    path('usuarios', views.DesarrolloView.as_view(), name='usuarios_list'),
+    path('usuarios', views.Users.as_view(), name='users_list'),
+
     path('auth', views.Auth.as_view(), name="auth"),
+
     # Cosultas con id de usuario
-    path(r"^usuarios/(?P<value>\d+)/$",
-         views.DesarrolloView.as_view(), name='usuario_id'),
+    path("usuarios/<int:id>/",
+         views.Users.as_view(), name='usuario_id'),
 ]
