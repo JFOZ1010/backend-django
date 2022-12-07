@@ -23,8 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 #SECRET_KEY = 'django-insecure-=%=e++q4!e05n@x&e1&4*$@n&d&z1ul$-7u5i6l&+i!4quy6oh'
 SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
 
+
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = False #True
+#DEBUG = False
 DEBUG = 'RENDER' not in os.environ
 
 # Erase all this block for production
@@ -105,7 +106,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "django.middleware.common.CommonMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
@@ -189,7 +190,6 @@ if not DEBUG:    # Tell Django to copy statics to the `staticfiles` directory
     # Turn on WhiteNoise storage backend that takes care of compressing static files
     # and creating unique names for each version so they can safely be cached forever.
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
