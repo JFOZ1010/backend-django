@@ -90,20 +90,130 @@ class Asociado(models.Model):
         return self.documentoAsociado
 
 
+class Ahorro(models.Model):
+
+    idAhorro = models.AutoField(primary_key=True)
+    idAsociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    fecha = models.DateField()
+    descripcion = models.CharField(max_length=200)
+    monto = models.IntegerField()
+    firmaDigital = models.CharField(max_length=200)
+    tipoConsignacion = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.idAhorro
+
+
 class Cliente(models.Model):
 
-    usuario = models.OneToOneField(
-        Usuario, on_delete=models.CASCADE)
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     documentoCliente = models.CharField(max_length=10, primary_key=True)
     asociadoVinculado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
     # correoCliente = models.CharField(max_length=70)
     nombre = models.CharField(max_length=50)
     telefono = models.CharField(max_length=50)
-    '''
-    def clean(self):
-        #self.correoCliente = validate_email(self.correoCliente)
-        self.documentoCliente = validate_document(self.documentoCliente)
-    '''
 
     def __str__(self):
         return self.documentoCliente
+
+
+#se creará el modelo de multa, que es un modelo en los casos en los que un usuario no cumpla con los pagos, 
+#cuenta con los atributos, idMulta (primary key), idAsociado que es integer, motivo que es varchar, fecha que es date, costo que es integer, 
+#estadoMulta que es booleano. 
+
+class Multa(models.Model):
+
+    idMulta = models.AutoField(primary_key=True)
+    idAsociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    motivo = models.CharField(max_length=200)
+    fecha = models.DateField()
+    costo = models.IntegerField()
+    estadoMulta = models.BooleanField()
+
+    def __str__(self):
+        return self.idMulta
+
+
+class CuotaManejo(models.Model): 
+    idCuotaManejo = models.AutoField(primary_key=True)
+    idAsociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    fechaComienzo = models.DateField(auto_now=False, auto_now_add=False)
+    fechaFin = models.DateField(auto_now=False, auto_now_add=False)
+    tasaInteres = models.IntegerField()
+
+    def __str__(self): 
+        return self.idCuotaManejo
+
+
+
+#modelo de reunion , el cual es modelo padre de
+# reunion virtual y reunion presencial
+class Reunion(models.Model):
+    idReunion = models.AutoField(primary_key=True)
+    #asociado es una llave foranea de asociado de tipo onetoone Field
+    asociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    fecha = models.DateField(auto_now=False, auto_now_add=False)
+    hora = models.CharField(max_length=30)
+    motivo = models.CharField(max_length=60)    
+    tipoReunion = models.CharField(max_length=10)
+    asistencia = models.BooleanField(default=False)
+
+
+    def __str__(self):
+        return self.idReunion
+
+class ReunionPresencial(Reunion):
+    sitio = models.CharField(max_length=50)
+    costo = models.IntegerField()
+
+    def __str__(self):
+        return self.idReunion
+
+class ReunionVirtual(Reunion):
+    enlace = models.CharField(max_length=50)
+    costo = models.IntegerField()
+
+    def __str__(self):
+        return self.idReunion
+
+
+
+class Prestamo(models.Model): 
+    solicitudPrestamo = models.CharField(primary_key=True, max_length=30)
+    #codeudor es una llave foranea de asociado 
+    codeudor = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    #deudor es una llave foranea de cliente
+    deudor = models.ForeignKey(Cliente, on_delete=models.CASCADE)    
+    monto = models.IntegerField()
+    fecha = models.DateField(auto_now=False, auto_now_add=False)
+    estadoPrestamo = models.BooleanField(default=False)
+    interes = models.FloatField()
+    comision = models.IntegerField()
+
+    def checkErrors(self): 
+        return self.montoValido() == [] 
+
+    def montoValido(self):
+        #array para almacenar los errores
+        errors = []
+        if self.monto > 0:
+            return errors.append("Monto valido")
+        else:
+            return errors.append("Monto no valido")
+
+    def __str__(self):
+        return self.solicitudPrestamo + " a: " + self.deudor
+
+
+
+class Abono(models.Model):
+    idAbono = models.AutoField(primary_key=True)
+    idPrestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE)
+    monto = models.IntegerField()
+    fecha = models.DateField()
+    descripcion = models.CharField(max_length=200)
+
+    def __str__(self): 
+        return self.idAbono 
+
+
