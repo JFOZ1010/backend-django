@@ -3,6 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from django.contrib import admin
 from api.models import Usuario, Cliente, Asociado, Ahorro, Prestamo
+
 # Register your models here.
 
 # Registramos las tablas que se crearon en los modelos

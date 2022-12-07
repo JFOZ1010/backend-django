@@ -6,6 +6,7 @@ from api.models import Usuario, Rol, Asociado, Ahorro, Prestamo
 import json
 from django.db.utils import IntegrityError
 from api.serializer import UserSerializer, AhorroSerializer, AsociadoSerializer, PrestamoSerializer
+from django.contrib import auth
 from django.utils import timezone
 from django.contrib.auth import authenticate
 from .tokens import create_jwt_pair_for_user
@@ -23,6 +24,7 @@ from rest_framework import status, generics
 from rest_framework import authentication, permissions
 from django.http import JsonResponse
 from django.contrib import auth
+
 from django.db.models.functions import Lower
 
 # Create your views here.

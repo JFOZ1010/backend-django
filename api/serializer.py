@@ -65,7 +65,6 @@ class PrestamoSerializer(serializers.Serializer):
         ret['estadoPrestamo'] = instance.estadoPrestamo
         ret['interes'] = instance.interes
         ret['comision'] = instance.comision
-
         return ret  
 
 class AhorroSerializer(serializers.Serializer):
