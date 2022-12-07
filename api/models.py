@@ -12,8 +12,6 @@ regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
 # Create your models here.
 
-# metodo global, que valide que el correo sea valido
-
 
 # se creara el modelo de usuario, que cuenta con los atrivbutos: idUsuario, correoUsr, admin (booleano), y una contraseña.
 
@@ -59,7 +57,6 @@ class Usuario(models.Model):
     def save_user_usuario(sender, instance, **kwargs):
         instance.usuario.save()
 
-
 """
 Author: Juan Felipe Osorio
 se creara el modelo de Asociado, que cuenta con los atributos: documentoAsociado, correoAsociado, nombre,
@@ -68,7 +65,7 @@ direccion, ciudad, fechanacimento, ocupacion, telefono.
 
 
 class Asociado(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE) #COMENTADO SOLO PARA HACER PRUEBA DE AHORROS. 
     # correoAsociado = models.CharField(max_length=70)
     documentoAsociado = models.CharField(max_length=10, primary_key=True)
     nombre = models.CharField(max_length=50)

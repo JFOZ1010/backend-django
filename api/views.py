@@ -1,26 +1,36 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User
-from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from api.models import Usuario, Rol, Prestamo
+from api.models import Usuario, Rol, Asociado, Ahorro, Prestamo
 import json
 from django.db.utils import IntegrityError
-from api.serializer import UserSerializer, PrestamoSerializer
+from api.serializer import UserSerializer, AhorroSerializer, AsociadoSerializer, PrestamoSerializer
 from django.contrib import auth
 from django.utils import timezone
-from .tokens import create_jwt_pair_for_user
 from django.contrib.auth import authenticate
-from rest_framework import generics, status
+from .tokens import create_jwt_pair_for_user
+
+
+
+# modulos nuevos que importo del framework DRF.
 from rest_framework.request import Request
+from rest_framework import generics
 from rest_framework import permissions
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import serializers
+from rest_framework import status, generics
+from rest_framework import authentication, permissions
+from django.http import JsonResponse
+from django.contrib import auth
+
 from django.db.models.functions import Lower
 
 # Create your views here.
+
+# creacion de una vista que implementara los requests
+
 
 # creacion de una vista que implementara los requests
 
@@ -189,6 +199,7 @@ def modifyUser(dataUser, dataUsuario):
         print(repr(e))
         return {"status": False, "msg": "No existe el usuario"}
 
+
 #View prestamos:
 
 class PrestamoCreate(APIView):
@@ -217,3 +228,125 @@ class PrestamoList(APIView):
             datos = {'mensaje':'prestamos no encontrados'}
         return JsonResponse(datos)
 
+
+"""SESION DEDICADA A AHORROS, Y TODO LO RELACIONADO CON ESTE"""
+
+
+# crear una clase based view para ahorros que herede de la clase View, y tome el serializador de ahorros
+
+"""
+@method_decorator(csrf_exempt, name='dispatch')
+class AhorrosView(View):
+    #GET: Obtener
+    def get(self, request):
+        ahorros = list(Ahorro.objects.all().values())
+        return JsonResponse(ahorros, safe=False)
+"""
+
+# CLASE CREAR
+"""
+class AhorrosCreate(generics.CreateAPIView):
+    serializer_class = AhorroSerializer
+    model = Ahorro
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = AhorroSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+"""
+
+# crear una vista para crear Ahorros, con el metodo post tomando como la APIView
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AhorrosCreate(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    # crear un metodo POST con un try except para el manejo de errores
+    def post(self, request):
+        try:
+            # crear un objeto de la clase AhorroSerializer, pasandole como parametro el request.data
+            serializer = AhorroSerializer(data=request.data)
+            # si el serializer es valido
+            if serializer.is_valid():
+                # guardar el serializer
+                serializer.save()
+                # retornar el serializer.data, y el status de la peticion
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # si el serializer no es valido, retornar el serializer.errors, y el status de la peticion
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # si ocurre un error, retornar un JsonResponse con el mensaje de error
+        except Exception as e:
+            return JsonResponse({"err": repr(e)})
+
+
+# CLASE LISTAR
+class AhorrosList(generics.ListAPIView):
+    serializer_class = AhorroSerializer
+    model = Ahorro
+    permission_classes = [permissions.AllowAny]
+    queryset = Ahorro.objects.all()
+
+
+# CLASE ACTUALIZAR
+class AhorrosUpdate(generics.UpdateAPIView):
+    serializer_class = AhorroSerializer
+    model = Ahorro
+    permission_classes = [permissions.AllowAny]
+    queryset = Ahorro.objects.all()
+
+    def put(self, request, pk):
+        ahorro = self.get_object(pk)
+        serializer = self.serializer_class(ahorro, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# CLASE ELIMINAR
+
+
+class AhorrosDelete(generics.DestroyAPIView):
+    serializer_class = AhorroSerializer
+    model = Ahorro
+    permission_classes = [permissions.AllowAny]
+    queryset = Ahorro.objects.all()
+
+    def delete(self, request, pk):
+        ahorro = self.get_object(pk)
+        ahorro.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+#crear una vista para Asociado, con el metodo post tomando como la APIView
+@method_decorator(csrf_exempt, name='dispatch')
+class AsociadoCreate(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    # crear un metodo POST con un try except para el manejo de errores
+    def post(self, request):
+        try:
+            # crear un objeto de la clase AsociadoSerializer, pasandole como parametro el request.data
+            serializer = AsociadoSerializer(data=request.data)
+            # si el serializer es valido
+            if serializer.is_valid():
+                # guardar el serializer
+                serializer.save()
+                # retornar el serializer.data, y el status de la peticion
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # si el serializer no es valido, retornar el serializer.errors, y el status de la peticion
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # si ocurre un error, retornar un JsonResponse con el mensaje de error
+        except Exception as e:
+            return JsonResponse({"err": repr(e)})
+        
+#crear una vista para Asociado, para listar todos los asociados
+class AsociadoList(generics.ListAPIView):
+    serializer_class = AsociadoSerializer
+    model = Asociado
+    permission_classes = [permissions.AllowAny]
+    queryset = Asociado.objects.all()
