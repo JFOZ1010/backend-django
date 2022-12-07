@@ -1,18 +1,11 @@
-from optparse import Values
-from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
-from django.shortcuts import render
 from django.contrib.auth.models import User
-from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from api.models import Usuario, Rol, Asociado, Ahorro
+from api.models import Usuario, Rol, Asociado, Ahorro, Prestamo
 import json
 from django.db.utils import IntegrityError
-from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-from api.serializer import UserSerializer, AhorroSerializer, AsociadoSerializer
-from django.db.models.functions import Lower
-from django.contrib import auth
+from api.serializer import UserSerializer, AhorroSerializer, AsociadoSerializer, PrestamoSerializer
 from django.utils import timezone
 from django.contrib.auth import authenticate
 from .tokens import create_jwt_pair_for_user
@@ -26,9 +19,11 @@ from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import serializers
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework import authentication, permissions
-
+from django.http import JsonResponse
+from django.contrib import auth
+from django.db.models.functions import Lower
 
 # Create your views here.
 
@@ -201,6 +196,35 @@ def modifyUser(dataUser, dataUsuario):
     except Exception as e:
         print(repr(e))
         return {"status": False, "msg": "No existe el usuario"}
+
+
+#View prestamos:
+
+class PrestamoCreate(APIView):
+    serializerClass= PrestamoSerializer 
+    model = Prestamo
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = PrestamoSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+##Pendiente: 
+class PrestamoList(APIView):
+    serializer_class = PrestamoSerializer
+    model = Prestamo
+    permission_classes = [permissions.AllowAny]
+    #queryset = Prestamo.objects.all()
+    def get(self, request):
+        prestamos= list(Prestamo.objects.values())
+        if len(prestamos)>0:
+            datos = {'mensaje':'exitoso', 'prestamos':prestamos}
+        else:
+            datos = {'mensaje':'prestamos no encontrados'}
+        return JsonResponse(datos)
 
 
 """SESION DEDICADA A AHORROS, Y TODO LO RELACIONADO CON ESTE"""

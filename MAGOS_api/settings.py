@@ -8,20 +8,24 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
-
+from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=%=e++q4!e05n@x&e1&4*$@n&d&z1ul$-7u5i6l&+i!4quy6oh'
+#SECRET_KEY = 'django-insecure-=%=e++q4!e05n@x&e1&4*$@n&d&z1ul$-7u5i6l&+i!4quy6oh'
+SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False #True
+#DEBUG = False #True
+DEBUG = 'RENDER' not in os.environ
 
 # Erase all this block for production
 CORS_ALLOW_ALL_ORIGINS = True
@@ -30,8 +34,10 @@ SESSION_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SECURE = True
 CORS_ALLOW_CREDENTIALS = True
 
+
 ALLOWED_HOSTS = [
-    '*'
+    'localhost', 
+    '127.0.0.1'
 ]
 
 # Methods allowed by the api
@@ -44,39 +50,63 @@ CORS_ALLOW_METHODS = [
     "PUT",
 ]
 
-
-#Django rest_framework
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
+    "NON_FIELD_ERRORS_KEY": "errors",
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-        #llamar a la autenticacion de sesion, con la app de autenticacion
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny', 
+        'rest_framework.permissions.IsAuthenticated'
+    ]
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    # "Bearer <Token>"
 }
 
 # Application definition
 
-INSTALLED_APPS = [
+# Application definition
+
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'api.apps.ApiConfig', 
-    'rest_framework',
+    'django.contrib.staticfiles'
 ]
+
+MY_APPS = [
+    'api.apps.ApiConfig'
+]
+
+DEPENDENCIES_APPS = [
+    'corsheaders',
+    'rest_framework',
+    'rest_framework.authtoken'
+]
+
+INSTALLED_APPS = DJANGO_APPS + MY_APPS + DEPENDENCIES_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.common.CommonMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'MAGOS_api.urls'
@@ -96,6 +126,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'MAGOS_api.wsgi.application'
 
@@ -151,6 +182,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+if not DEBUG:    # Tell Django to copy statics to the `staticfiles` directory
+    # in your application directory on Render.
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    # Turn on WhiteNoise storage backend that takes care of compressing static files
+    # and creating unique names for each version so they can safely be cached forever.
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field

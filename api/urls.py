@@ -4,9 +4,10 @@ from . import views
 
 # Agrego las rutas a una carpeta usuarios raiz
 urlpatterns = [
+
+    ##################################### URL's USUARIOS. ######################################
     path('usuarios', views.Users.as_view(), name='users_list'),
     path('auth', views.Auth.as_view(), name="auth"),
-
     # Cosultas con id de usuario
     path("usuarios/<int:id>/",
          views.Users.as_view(), name='usuario_id'),
@@ -22,13 +23,8 @@ urlpatterns = [
     ##################################### URL's ASOCIADOS. ######################################
     path('asociados/create', views.AsociadoCreate.as_view(), name='asociados_create'),
     path('asociados/all', views.AsociadoList.as_view(), name='asociados_list'),
+
+    ##################################### URL's PRESTAMOS. ######################################
+    path('prestamos/create', views.PrestamoCreate.as_view(), name= 'prestamos_create'),
+    path('prestamos/all', views.PrestamoList.as_view(), name= 'prestamos_list'),
 ]
-
-
-"""
-    path('New/create/',addNews.as_view()),
-    path('New/all/',allNew.as_view()),
-    path('New/delete/<str:pk>/',DeleteNew.as_view(), name="delete"),
-    path('New/update/<str:pk>/',UpdateNew.as_view(), name = "update"),
-    path('New/get/<str:pk>',NewGet.as_view(), name = 'newGet'),
-"""
