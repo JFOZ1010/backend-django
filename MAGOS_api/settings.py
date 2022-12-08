@@ -15,7 +15,6 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
@@ -37,7 +36,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 ALLOWED_HOSTS = [
-    'localhost', 
+    'localhost',
     '127.0.0.1'
 ]
 
@@ -59,7 +58,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny', 
+        'rest_framework.permissions.AllowAny',
         'rest_framework.permissions.IsAuthenticated'
     ]
 }
@@ -72,7 +71,8 @@ SIMPLE_JWT = {
     # "Bearer <Token>"
 }
 
-# Application definition
+# Personalizar modelo de user django
+AUTH_USER_MODEL = 'api.user'
 
 # Application definition
 
@@ -86,7 +86,7 @@ DJANGO_APPS = [
 ]
 
 MY_APPS = [
-    'api.apps.ApiConfig'
+    'api.apps.ApiConfig',
 ]
 
 DEPENDENCIES_APPS = [

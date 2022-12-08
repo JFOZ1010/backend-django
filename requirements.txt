@@ -13,3 +13,5 @@ sqlparse==0.4.3
 tzdata==2022.4
 wheel==0.37.1
 djangorestframework_simplejwt==5.2.2
+django-cors-headers
+whitenoise
