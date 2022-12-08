@@ -33,22 +33,22 @@ class SignUpView(generics.GenericAPIView):
     permission_classes = []
     queryset = User.objects.all()
 
-    def get_object(self, id):
+    def get_object(self, pk):
         try:
-            return User.objects.get(id=id)
+            return User.objects.get(id=pk)
         except User.DoesNotExist:
             raise Http404("El usuario no existe")
 
-    def get(self, request: Response, id=0):
+    def get(self, request: Response, pk=0):
         # Note the use of `get_queryset()` instead of `self.queryset`
-        if id:
-            user = self.get_object(id)
-            serializer = UserSerializer(user, data=request.data)
+        if pk > 0:
+            user = self.get_object(pk)
+            serializer = UserSerializer(user, many=False)
             return Response(data=serializer.data)
         else:
             queryset = self.get_queryset()
             serializer = UserSerializer(queryset, many=True)
-            return Response(serializer.data)
+            return Response(data=serializer.data)
 
     def post(self, request: Request):
         data = request.data
@@ -63,16 +63,8 @@ class SignUpView(generics.GenericAPIView):
 
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request: Response, id, format=None):
-        user = self.get_object(id)
-        serializer = UserSerializer(user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, id, format=None):
-        user = self.get_object(id)
+    def delete(self, request, pk, format=None):
+        user = self.get_object(pk)
         if user.delete():
             return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -86,13 +78,13 @@ class UserUpdate(generics.UpdateAPIView):
 
     def get_object(self, pk):
         try:
-            return User.objects.get(pk=pk)
+            return User.objects.get(id=pk)
         except User.DoesNotExist:
             raise Http404("El usuario no existe")
 
-    def update_user(self, request: Response, pk):
-        user = User.objects.get(pk=pk)
-        serializer = UserSerializer(instance=user, data=request.data)
+    def put(self, request: Response, pk):
+        user = self.get_object(pk)
+        serializer = self.serializer_class(instance=user, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -106,9 +98,7 @@ class LoginView(APIView):
     def post(self, request: Request):
         email = request.data.get("email")
         password = request.data.get("password")
-
         user = authenticate(email=email, password=password)
-
         if user is not None:
             tokens = create_jwt_pair_for_user(user)
             response = {"message": "Login Successfull", "tokens": tokens}
@@ -116,12 +106,10 @@ class LoginView(APIView):
         else:
             return Response(data={"message": "Invalid email or password"})
 
-    def get(self, request: Request):
+    def get(self, request):
         content = {
-            "user": str(request.user),
-            "auth": str(request.auth)
+            "user": str(request.user)
         }
-
         return Response(data=content, status=status.HTTP_200_OK)
 
 

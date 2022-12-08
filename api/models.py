@@ -44,7 +44,7 @@ class User(AbstractUser):
 
     objects = CustomUserManager()
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["rol", "password"]
+    REQUIRED_FIELDS = ["rol", "password", "documento"]
 
     class Meta:
         verbose_name = 'user'

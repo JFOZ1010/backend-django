@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email", "password",
-                  "rol", "first_name", "last_name", "is_active"]
+                  "rol", "first_name", "last_name", "is_active", "fechaNacimiento", "documento"]
         constraints = [
             models.UniqueConstraint(fields=['email'], condition=models.Q(
                 is_deleted=False), name='unique_undeleted_name')
@@ -22,8 +22,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         email_exists = User.objects.filter(email=attrs["email"]).exists()
-        if email_exists:
-            raise ValidationError('Email has already been used')
+        doc_exists = User.objects.filter(id=attrs["documento"]).exists()
+        if email_exists and doc_exists:
+            raise ValidationError(
+                'Ya hay un usuario con su correo y documento')
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
