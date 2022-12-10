@@ -1,21 +1,6 @@
-import re
-
-from django.contrib.auth.models import User
 from django.db import models
-from django.dispatch import receiver
-from django.db.models.signals import post_save
-
-regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-
-# from django.core.exceptions import ValidationError
-# from django.utils import timezone
-
-# Create your models here.
-
-# metodo global, que valide que el correo sea valido
-
-
-# se creara el modelo de usuario, que cuenta con los atrivbutos: idUsuario, correoUsr, admin (booleano), y una contraseña.
+from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import AbstractUser
 
 
 class Rol(models.TextChoices):
@@ -24,76 +9,55 @@ class Rol(models.TextChoices):
     ASOCIADO = 'asociado'
 
 
-class Usuario(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    fechaNacimiento = models.DateField(
-        "fechaNacimiento", auto_now=False, auto_now_add=False, blank=True)
-    rol = models.CharField(max_length=20, choices=Rol.choices, blank=True)
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password, **extra_fields):
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save()
+        return user
 
-    def checkData(self):
-        return self.getErrors() == []
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
 
-    def getErrors(self):
-        errors = []
-        if self.rol not in Rol.values:
-            errors.append("Rol inexistente")
-        if len(self.user.password) < 8:
-            errors.append("Password no permitida")
-        if not re.fullmatch(regex, self.user.username):
-            errors.append("Email invalido")
-        return errors
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser has to have is_staff being True")
+
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser has to have is_superuser being True")
+
+        return self.create_user(email=email, password=password, **extra_fields)
+
+
+class User(AbstractUser):
+    email = models.CharField(
+        max_length=80, unique=True)
+    username = models.CharField(max_length=45)
+    rol = models.CharField(max_length=20, choices=Rol.choices, null=False)
+    documento = models.CharField(max_length=15, null=False)
+    ciudad = models.CharField(max_length=100, null=True)
+    direccion = models.CharField(max_length=100, null=True)
+    ocupacion = models.CharField(max_length=100, null=True)
+    telefono = models.CharField(max_length=50, null=True)
+    fechaNacimiento = models.DateField(null=True)
+
+    objects = CustomUserManager()
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["rol", "password", "documento"]
 
     class Meta:
-        verbose_name = 'Usuario'
-        verbose_name_plural = 'Usuarios'
+        verbose_name = 'user'
+        verbose_name_plural = 'users'
 
     def __str__(self):
-        return self.user.username + " " + self.rol
-
-    @receiver(post_save, sender=User)
-    def create_user_usuario(sender, instance, created, **kwargs):
-        if created:
-            Usuario.objects.create(user=instance)
-
-    @receiver(post_save, sender=User)
-    def save_user_usuario(sender, instance, **kwargs):
-        instance.usuario.save()
-
-
-"""
-Author: Juan Felipe Osorio
-se creara el modelo de Asociado, que cuenta con los atributos: documentoAsociado, correoAsociado, nombre,
-direccion, ciudad, fechanacimento, ocupacion, telefono.
-"""
-
-
-class Asociado(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    # correoAsociado = models.CharField(max_length=70)
-    documentoAsociado = models.CharField(max_length=10, primary_key=True)
-    nombre = models.CharField(max_length=50)
-    direccion = models.CharField(max_length=70)
-    ciudad = models.CharField(max_length=50)
-    # fechaNacimiento = models.models.DateTimeField(_("fechaNacimiento"), auto_now=False, auto_now_add=False)
-    ocupacion = models.CharField(max_length=50)
-    # telefono con varchar, no necesitamos hacer nada con ese integer como telefono.
-    telefono = models.CharField(max_length=50)
-    '''
-    def clean(self):
-        #self.correoAsociado = validate_email(self.correoAsociado)
-        self.documentoAsociado = validate_document(self.documentoAsociado)
-        #self.fechaNacimiento = validate_date(self.fechaNacimiento)
-
-    '''
-
-    def __str__(self):
-        return self.documentoAsociado
+        return self.email
 
 
 class Ahorro(models.Model):
 
     idAhorro = models.AutoField(primary_key=True)
-    idAsociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    # idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
     fecha = models.DateField()
     descripcion = models.CharField(max_length=200)
     monto = models.IntegerField()
@@ -104,27 +68,10 @@ class Ahorro(models.Model):
         return self.idAhorro
 
 
-class Cliente(models.Model):
-
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
-    documentoCliente = models.CharField(max_length=10, primary_key=True)
-    asociadoVinculado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
-    # correoCliente = models.CharField(max_length=70)
-    nombre = models.CharField(max_length=50)
-    telefono = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.documentoCliente
-
-
-#se creará el modelo de multa, que es un modelo en los casos en los que un usuario no cumpla con los pagos, 
-#cuenta con los atributos, idMulta (primary key), idAsociado que es integer, motivo que es varchar, fecha que es date, costo que es integer, 
-#estadoMulta que es booleano. 
-
 class Multa(models.Model):
 
     idMulta = models.AutoField(primary_key=True)
-    idAsociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    # idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
     motivo = models.CharField(max_length=200)
     fecha = models.DateField()
     costo = models.IntegerField()
@@ -134,33 +81,32 @@ class Multa(models.Model):
         return self.idMulta
 
 
-class CuotaManejo(models.Model): 
+class CuotaManejo(models.Model):
     idCuotaManejo = models.AutoField(primary_key=True)
-    idAsociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    # idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
     fechaComienzo = models.DateField(auto_now=False, auto_now_add=False)
     fechaFin = models.DateField(auto_now=False, auto_now_add=False)
     tasaInteres = models.IntegerField()
 
-    def __str__(self): 
+    def __str__(self):
         return self.idCuotaManejo
 
 
-
-#modelo de reunion , el cual es modelo padre de
+# modelo de reunion , el cual es modelo padre de
 # reunion virtual y reunion presencial
 class Reunion(models.Model):
     idReunion = models.AutoField(primary_key=True)
-    #asociado es una llave foranea de asociado de tipo onetoone Field
-    asociado = models.ForeignKey(Asociado, on_delete=models.CASCADE)
+    # asociado es una llave foranea de asociado de tipo onetoone Field
+    # asociado = models.ForeignKey(User, on_delete=models.CASCADE)
     fecha = models.DateField(auto_now=False, auto_now_add=False)
     hora = models.CharField(max_length=30)
-    motivo = models.CharField(max_length=60)    
+    motivo = models.CharField(max_length=60)
     tipoReunion = models.CharField(max_length=10)
     asistencia = models.BooleanField(default=False)
 
-
     def __str__(self):
         return self.idReunion
+
 
 class ReunionPresencial(Reunion):
     sitio = models.CharField(max_length=50)
@@ -168,6 +114,7 @@ class ReunionPresencial(Reunion):
 
     def __str__(self):
         return self.idReunion
+
 
 class ReunionVirtual(Reunion):
     enlace = models.CharField(max_length=50)
@@ -177,24 +124,23 @@ class ReunionVirtual(Reunion):
         return self.idReunion
 
 
-
-class Prestamo(models.Model): 
+class Prestamo(models.Model):
     solicitudPrestamo = models.CharField(primary_key=True, max_length=30)
-    #codeudor es una llave foranea de asociado 
-    codeudor = models.ForeignKey(Asociado, on_delete=models.CASCADE)
-    #deudor es una llave foranea de cliente
-    deudor = models.ForeignKey(Cliente, on_delete=models.CASCADE)    
+    # codeudor es una llave foranea de asociado
+    # codeudor = models.ForeignKey(User, on_delete=models.CASCADE)
+    # deudor es una llave foranea de cliente
+    ## deudor = models.ForeignKey(User, on_delete=models.CASCADE)
     monto = models.IntegerField()
     fecha = models.DateField(auto_now=False, auto_now_add=False)
     estadoPrestamo = models.BooleanField(default=False)
     interes = models.FloatField()
     comision = models.IntegerField()
 
-    def checkErrors(self): 
-        return self.montoValido() == [] 
+    def checkErrors(self):
+        return self.montoValido() == []
 
     def montoValido(self):
-        #array para almacenar los errores
+        # array para almacenar los errores
         errors = []
         if self.monto > 0:
             return errors.append("Monto valido")
@@ -205,7 +151,6 @@ class Prestamo(models.Model):
         return self.solicitudPrestamo + " a: " + self.deudor
 
 
-
 class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
     idPrestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE)
@@ -213,7 +158,5 @@ class Abono(models.Model):
     fecha = models.DateField()
     descripcion = models.CharField(max_length=200)
 
-    def __str__(self): 
-        return self.idAbono 
-
-
+    def __str__(self):
+        return self.idAbono

@@ -1,80 +1,78 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from api.models import Usuario, Ahorro, Asociado
+from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext as _
+from api.models import Ahorro, Prestamo, User
 from rest_framework.validators import ValidationError
+from django.db import models
 
 
 class UserSerializer(serializers.ModelSerializer):
 
+    # "is_staff": true (admin en Django)
+    # "is_active": true, (activo en Django)
+
     class Meta:
-        model = Usuario
-        fields = ['id', 'first_name', 'username', 'rol']
+        model = User
+        fields = ["id", "username", "email", "password",
+                  "rol", "first_name", "last_name", "is_active", "fechaNacimiento", "documento"]
+        constraints = [
+            models.UniqueConstraint(fields=['email'], condition=models.Q(
+                is_deleted=False), name='unique_undeleted_name')
+        ]
 
     def validate(self, attrs):
-
         email_exists = User.objects.filter(email=attrs["email"]).exists()
-
-        if email_exists:
-            raise ValidationError('Email has already been used')
-
+        doc_exists = User.objects.filter(id=attrs["documento"]).exists()
+        if email_exists and doc_exists:
+            raise ValidationError(
+                'Ya hay un usuario con su correo y documento')
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
-        instance.nombre = validated_data.get('nombre', instance.nombre)
-        instance.apellido = validated_data.get('apellido', instance.apellido)
-        instance.email = validated_data.get('email', instance.email)
-        instance.rol = validated_data.get('rol', instance.rol)
-        instance.enabled = validated_data.get('enabled', instance.enabled)
-        instance.password = validated_data.get('password', instance.enabled)
+        email = validated_data.get('email', '')
 
+        if User.objects.exclude(pk=instance.pk).filter(email=email):
+            raise serializers.ValidationError(
+                'User with this email already exists.')
         return super().update(instance, validated_data)
 
-    def to_representation(self, instance: User):
-        ret = {}
-        p: Usuario = instance.usuario
-        ret['username'] = instance.username
-        ret['nombre'] = instance.first_name
-        ret['apellido'] = instance.last_name
-        ret['email'] = instance.email
-        ret['rol'] = p.rol
-        ret['enabled'] = instance.is_active
 
+# Serializacion para prestamos
+
+
+class PrestamoSerializer(serializers.Serializer):
+    solicitudPrestamo = serializers.CharField()
+    codeudor = serializers.CharField()
+    deudor = serializers.CharField()
+    monto = serializers.IntegerField()
+    fecha = serializers.DateField()
+    estadoPrestamo = serializers.BooleanField()
+    interes = serializers.FloatField()
+    comision = serializers.IntegerField()
+
+    def to_representation(self, instance: Prestamo):
+        ret = {}
+        p: Prestamo = instance.Prestamo
+        ret['solicitudPrestamo'] = instance.solicitudPrestamo
+        ret['codeudor'] = instance.codeudor
+        ret['deudor'] = instance.deudor
+        ret['monto'] = instance.monto
+        ret['fecha'] = instance.fecha
+        ret['estadoPrestamo'] = instance.estadoPrestamo
+        ret['interes'] = instance.interes
+        ret['comision'] = instance.comision
         return ret
 
-#crear el serializador para el ahorro 
-"""
-class AhorroSerializer(serializers.Serializer):
-    class Meta:
-        model = Ahorro
-        fields = ('__all__')
-"""
-    
 
 class AhorroSerializer(serializers.Serializer):
-    
-    #A serializer to display and create a Participant
 
-    id = serializers.IntegerField()
+    # un serializador para el modelo de Ahorro
+    idAhorro = serializers.IntegerField()
     fecha = serializers.DateField()
-    monto = serializers.FloatField()
-    asociado = serializers.CharField()
     descripcion = serializers.CharField()
-    tipo = serializers.CharField()
-    estado = serializers.CharField()
-    #enabled = serializers.BooleanField()
-    #password = serializers.CharField(required=False)
+    monto = serializers.IntegerField()
+    firmaDigital = serializers.CharField()
+    tipoConsignacion = serializers.CharField()
 
-    def to_representation(self, instance: Ahorro):
-        ret = {}
-        p: Ahorro = instance.ahorro
-        ret['id'] = instance.id
-        ret['fecha'] = instance.fecha
-        ret['monto'] = instance.monto
-        ret['asociado'] = instance.asociado
-        ret['descripcion'] = instance.descripcion
-        ret['tipo'] = instance.tipo
-        ret['estado'] = instance.estado
-       #ret['enabled'] = instance.is_active
-
-        return ret  
+    def create(self, validated_data):
+        return Ahorro.objects.create(**validated_data)
