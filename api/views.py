@@ -28,21 +28,21 @@ from rest_framework.exceptions import NotFound
 # Create your views here.
 
 
-class SignUpView(generics.GenericAPIView):
+class UserView(generics.GenericAPIView):
     serializer_class = UserSerializer
     permission_classes = []
     queryset = User.objects.all()
 
-    def get_object(self, pk):
+    def get_object(self, documento):
         try:
-            return User.objects.get(id=pk)
+            return User.objects.get(documento=documento)
         except User.DoesNotExist:
             raise Http404("El usuario no existe")
 
-    def get(self, request: Response, pk=0):
+    def get(self, request: Response, documento=0):
         # Note the use of `get_queryset()` instead of `self.queryset`
-        if pk > 0:
-            user = self.get_object(pk)
+        if documento > 0:
+            user = self.get_object(documento)
             serializer = UserSerializer(user, many=False)
             return Response(data=serializer.data)
         else:
