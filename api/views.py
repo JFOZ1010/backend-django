@@ -17,12 +17,12 @@ from .tokens import create_jwt_pair_for_user
 
 # modulos nuevos que importo del framework DRF.
 from rest_framework.request import Request
-from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status, generics
 from rest_framework import authentication, permissions
+from rest_framework.exceptions import NotFound
 
 
 # Create your views here.
@@ -73,8 +73,7 @@ class SignUpView(generics.GenericAPIView):
 class UserUpdate(generics.UpdateAPIView):
     serializer_class = UserSerializer
     model = User
-    permission_classes = [permissions.AllowAny]
-    queryset = User.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, pk):
         try:
@@ -108,7 +107,8 @@ class LoginView(APIView):
 
     def get(self, request):
         content = {
-            "user": str(request.user)
+            "user": str(request.user),
+            "auth": str(request.auth)
         }
         return Response(data=content, status=status.HTTP_200_OK)
 
@@ -243,14 +243,39 @@ class AhorrosDelete(generics.DestroyAPIView):
 
 # Creación de abono
 @method_decorator(csrf_exempt, name='dispatch')
-class CreateAbono(generics.CreateAPIView):
+class AbonoView(generics.GenericAPIView):
     serializer_class = AbonoSerializer
     model = Abono
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_object(self, pk):
+        try:
+            return Abono.objects.get(idAbono=pk)
+        except Abono.DoesNotExist:
+            raise NotFound(detail="El abono no existe")
+
     def post(self, request: Response):
-        serializer = AbonoSerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
+
+    def get(self, documento):
+        queryset = Abono.objects.filter(abona=documento).all()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
+
+    def put(self, request: Response, pk):
+        abono = self.get_object(pk)
+        serializer = self.serializer_class(instance=abono, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
+
+    def delete(self, pk):
+        abono = self.get_object(pk)
+        if abono.delete():
+            return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
