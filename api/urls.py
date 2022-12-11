@@ -6,9 +6,9 @@ from . import views
 urlpatterns = [
 
     ##################################### URL's USUARIOS. ######################################
-    path("users/", views.SignUpView.as_view(), name="users"),
+    path("users/", views.UserView.as_view(), name="users_list_all"),
     path("login/", views.LoginView.as_view(), name="login"),
-    path("users/<int:pk>", views.SignUpView.as_view(), name="user"),
+    path("users/<int:documento>", views.UserView.as_view(), name="user"),
     path("users/modify/<int:pk>", views.UserUpdate.as_view(), name="user_modify"),
 
     ##################################### URL's AHORROS. ######################################
