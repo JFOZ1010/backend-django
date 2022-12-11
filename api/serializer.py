@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext as _
-from api.models import Ahorro, Prestamo, User
+from api.models import Ahorro, Prestamo, User, Abono
 from rest_framework.validators import ValidationError
 from django.db import models
 
@@ -76,3 +76,34 @@ class AhorroSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         return Ahorro.objects.create(**validated_data)
+
+
+# Serialización de Abono
+
+class AbonoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Abono
+        fields = ["idAbono", "idPrestamo", "abona",
+                  "monto", "fecha", "descripcion"]
+
+        def validate(self, attrs):
+            abona_exist = User.objects.filter(
+                documento=attrs["abona"]).exists()
+            prestamos_exist = Prestamo.objects.filter(
+                idPrestamo=attrs["prestamo"]).exists()
+            monto_nat = attrs["monto"] <= 0
+
+            if abona_exist:
+                raise ValidationError(
+                    "El abonador no existe"
+                )
+            if prestamos_exist:
+                raise ValidationError(
+                    "El prestamo no existe"
+                )
+            if monto_nat:
+                raise ValidationError(
+                    "Ingrese un monto válido"
+                )
+            return super().validate(attrs)

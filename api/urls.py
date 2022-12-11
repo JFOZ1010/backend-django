@@ -24,4 +24,7 @@ urlpatterns = [
     path('prestamos/create', views.PrestamoCreate.as_view(),
          name='prestamos_create'),
     path('prestamos/all', views.PrestamoList.as_view(), name='prestamos_list'),
+
+    ##################################### URL's ABONOS. ######################################
+    path('abono/create', views.CreateAbono.as_view(), name='abono_create')
 ]
