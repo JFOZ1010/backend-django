@@ -197,17 +197,24 @@ class AhorroListUser(generics.RetrieveAPIView):
 class AhorrosUpdate(generics.UpdateAPIView):
     serializer_class = AhorroSerializer
     model = Ahorro
-    permission_classes = [permissions.AllowAny]
-    queryset = Ahorro.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    #queryset = Ahorro.objects.all()
 
-    def put(self, request, pk):
+    def get_object(self, pk):
+        try:
+            return Ahorro.objects.get(pk=pk)
+        except Ahorro.DoesNotExist:
+            raise NotFound(detail="El ahorro no existe")
+    
+    def put(self, *args, **kwargs):
+        pk = self.kwargs.get('pk')
         ahorro = self.get_object(pk)
-        serializer = self.serializer_class(ahorro, data=request.data)
+        serializer = self.serializer_class(ahorro, data=self.request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # CLASE ELIMINAR
