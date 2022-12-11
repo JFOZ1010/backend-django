@@ -134,7 +134,7 @@ class PrestamoList(APIView):
     serializer_class = PrestamoSerializer
     model = Prestamo
     permission_classes = [permissions.AllowAny]
-    #queryset = Prestamo.objects.all()
+    # queryset = Prestamo.objects.all()
 
     def get(self, request):
         prestamos = list(Prestamo.objects.values())
@@ -150,61 +150,47 @@ class PrestamoList(APIView):
 
 # crear una clase based view para ahorros que herede de la clase View, y tome el serializador de ahorros
 
-"""
-@method_decorator(csrf_exempt, name='dispatch')
-class AhorrosView(View):
-    #GET: Obtener
-    def get(self, request):
-        ahorros = list(Ahorro.objects.all().values())
-        return JsonResponse(ahorros, safe=False)
-"""
-
-# CLASE CREAR
-"""
-class AhorrosCreate(generics.CreateAPIView):
-    serializer_class = AhorroSerializer
-    model = Ahorro
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request, *args, **kwargs):
-        serializer = AhorroSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-"""
 
 # crear una vista para crear Ahorros, con el metodo post tomando como la APIView
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class AhorrosCreate(APIView):
+class AhorrosCreate(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
     # crear un metodo POST con un try except para el manejo de errores
     def post(self, request):
-        try:
-            # crear un objeto de la clase AhorroSerializer, pasandole como parametro el request.data
-            serializer = AhorroSerializer(data=request.data)
-            # si el serializer es valido
-            if serializer.is_valid():
-                # guardar el serializer
-                serializer.save()
-                # retornar el serializer.data, y el status de la peticion
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            # si el serializer no es valido, retornar el serializer.errors, y el status de la peticion
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        # si ocurre un error, retornar un JsonResponse con el mensaje de error
-        except Exception as e:
-            return JsonResponse({"err": repr(e)})
+        # crear un objeto de la clase AhorroSerializer, pasandole como parametro el request.data
+        serializer = AhorroSerializer(data=request.data)
+        # si el serializer es valido
+        if serializer.is_valid():
+            # guardar el serializer
+            serializer.save()
+            # retornar el serializer.data, y el status de la peticion
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # si el serializer no es valido, retornar el serializer.errors, y el status de la peticion
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # CLASE LISTAR
 class AhorrosList(generics.ListAPIView):
     serializer_class = AhorroSerializer
     model = Ahorro
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Ahorro.objects.all()
+
+
+# un ahorro list de un user especifico con un filter.
+class AhorroListUser(generics.RetrieveAPIView):
+    serializer_class = AhorroSerializer
+    model = Ahorro
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, *args, **kwargs):
+        documento = self.kwargs.get('documento')
+        queryset = Ahorro.objects.filter(DocAsociado=documento).all()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
 # CLASE ACTUALIZAR
@@ -223,26 +209,35 @@ class AhorrosUpdate(generics.UpdateAPIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 # CLASE ELIMINAR
-
-
 class AhorrosDelete(generics.DestroyAPIView):
     serializer_class = AhorroSerializer
     model = Ahorro
-    permission_classes = [permissions.AllowAny]
-    queryset = Ahorro.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
-    def delete(self, request, pk):
+    def get_object(self, pk):
+        try:
+            return Ahorro.objects.get(pk=pk)
+        except Ahorro.DoesNotExist:
+            raise NotFound(detail="El ahorro no existe")
+
+    def delete(self, request, *args, **kwargs):
+        pk = self.kwargs.get('pk')
         ahorro = self.get_object(pk)
-        ahorro.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if ahorro.delete():
+            return Response(status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(data={
+                "No existe el ahorro"
+            }, status=status.HTTP_204_NO_CONTENT)
 
 
 # Sección de abono
 
 
 # Creación de abono
-@method_decorator(csrf_exempt, name='dispatch')
+@ method_decorator(csrf_exempt, name='dispatch')
 class AbonoView(generics.GenericAPIView):
     serializer_class = AbonoSerializer
     model = Abono
