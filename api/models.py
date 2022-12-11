@@ -156,7 +156,7 @@ class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
     idPrestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE)
     abona = models.OneToOneField(
-        User, name='abona', on_delete=models.CASCADE, null=False)
+        User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
     monto = models.IntegerField(null=False)
     fecha = models.DateField(default=now().date(), null=False)
     descripcion = models.CharField(max_length=200, blank=True)
