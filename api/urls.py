@@ -15,6 +15,8 @@ urlpatterns = [
     #path('ahorros', Ahorros.as_view(), name='ahorros_list'),
     path('ahorros/create', views.AhorrosCreate.as_view(), name='ahorros_create'),
     path('ahorros/all', views.AhorrosList.as_view(), name='ahorros_list'),
+    path('ahorros/all/<int:documento>',
+         views.AhorroListUser.as_view(), name='ahorros_user'),
     path('ahorros/delete/<int:pk>',
          views.AhorrosDelete.as_view(), name='ahorros_delete'),
     path('ahorros/update/<int:pk>',
