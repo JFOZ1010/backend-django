@@ -74,5 +74,16 @@ class AhorroSerializer(serializers.Serializer):
     firmaDigital = serializers.CharField()
     tipoConsignacion = serializers.CharField()
 
+    """
+    {
+  "idAhorro": 1,
+  "fecha": "2008-12-01",
+  "descripcion": "This field is Description",
+  "monto": 12,
+  "firmaDigital": "JuanOsorio", 
+  "tipoConsignacion": "This field is Type"
+}
+    """
+
     def create(self, validated_data):
         return Ahorro.objects.create(**validated_data)
