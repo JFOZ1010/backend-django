@@ -29,8 +29,9 @@ urlpatterns = [
 
     ##################################### URL's ABONOS. ######################################
     path('abono/create', views.AbonoView.as_view(), name='abono_create'),
+    path("abono/all", views.AbonoListAll.as_view(), name="abono_list_all"),
     path('abono/all/<int:documento>',
-         views.AbonoView.as_view(), name='abono_list'),
+         views.AbonoView.as_view(), name='abono_list_user'),
     path('abono/modify/<int:pk>', views.AbonoView.as_view(), name='abono_modify'),
     path('abono/delete/<int:pk>', views.AbonoView.as_view(), name='abono_modify'),
 ]

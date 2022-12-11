@@ -205,7 +205,7 @@ class AhorrosUpdate(generics.UpdateAPIView):
             return Ahorro.objects.get(pk=pk)
         except Ahorro.DoesNotExist:
             raise NotFound(detail="El ahorro no existe")
-    
+
     def put(self, *args, **kwargs):
         pk = self.kwargs.get('pk')
         ahorro = self.get_object(pk)
@@ -252,8 +252,8 @@ class AbonoView(generics.GenericAPIView):
 
     def get_object(self, pk):
         try:
-            return Abono.objects.get(idAbono=pk)
-        except Abono.DoesNotExist:
+            return self.model.objects.get(idAbono=pk)
+        except self.model.DoesNotExist:
             raise NotFound(detail="El abono no existe")
 
     def post(self, request: Response):
@@ -263,7 +263,7 @@ class AbonoView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
     def get(self, documento):
-        queryset = Abono.objects.filter(abona=documento).all()
+        queryset = self.model.objects.filter(abona=documento).all()
         serializer = self.serializer_class(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
 
@@ -281,3 +281,11 @@ class AbonoView(generics.GenericAPIView):
             return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
         else:
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@ method_decorator(csrf_exempt, name='dispatch')
+class AbonoListAll(generics.ListAPIView):
+    serializer_class = AbonoSerializer
+    model = Abono
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = model.objects.all()
