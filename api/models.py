@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.utils.timezone import now
 
 
 class Rol(models.TextChoices):
@@ -35,7 +36,7 @@ class User(AbstractUser):
         max_length=80, unique=True)
     username = models.CharField(max_length=45)
     rol = models.CharField(max_length=20, choices=Rol.choices, null=False)
-    documento = models.CharField(max_length=15, null=False)
+    documento = models.CharField(max_length=15, null=False, unique=True)
     ciudad = models.CharField(max_length=100, null=True)
     direccion = models.CharField(max_length=100, null=True)
     ocupacion = models.CharField(max_length=100, null=True)
@@ -57,9 +58,9 @@ class User(AbstractUser):
 class Ahorro(models.Model):
 
     idAhorro = models.AutoField(primary_key=True)
-    # idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
-    fecha = models.DateField()
-    descripcion = models.CharField(max_length=200)
+    idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
+    fecha = models.DateField(default=now().date(), null=False)
+    descripcion = models.CharField(max_length=200, null=True)
     monto = models.IntegerField()
     firmaDigital = models.CharField(max_length=200)
     tipoConsignacion = models.CharField(max_length=200)
@@ -154,9 +155,15 @@ class Prestamo(models.Model):
 class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
     idPrestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE)
-    monto = models.IntegerField()
-    fecha = models.DateField()
-    descripcion = models.CharField(max_length=200)
+    abona = models.OneToOneField(
+        User, name='abona', on_delete=models.CASCADE, null=False)
+    monto = models.IntegerField(null=False)
+    fecha = models.DateField(default=now().date(), null=False)
+    descripcion = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
         return self.idAbono
+
+    class Meta:
+        verbose_name = 'Abono'
+        verbose_name_plural = 'Abonos'

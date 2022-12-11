@@ -11,8 +11,8 @@ from django.http import JsonResponse
 from django.http import Http404
 
 # Modulos locales
-from api.models import User, Ahorro, Prestamo
-from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer
+from api.models import Abono, User, Ahorro, Prestamo
+from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer, AbonoSerializer
 from .tokens import create_jwt_pair_for_user
 
 # modulos nuevos que importo del framework DRF.
@@ -236,3 +236,21 @@ class AhorrosDelete(generics.DestroyAPIView):
         ahorro = self.get_object(pk)
         ahorro.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# Sección de abono
+
+
+# Creación de abono
+@method_decorator(csrf_exempt, name='dispatch')
+class CreateAbono(generics.CreateAPIView):
+    serializer_class = AbonoSerializer
+    model = Abono
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request: Response):
+        serializer = AbonoSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
