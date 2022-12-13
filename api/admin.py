@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from django.contrib import admin
-from api.models import User, Prestamo, Ahorro
+from api.models import User, Prestamo, Ahorro, Abono
 
 # Register your models here.
 
@@ -10,3 +10,4 @@ from api.models import User, Prestamo, Ahorro
 admin.site.register(User)
 admin.site.register(Ahorro)
 admin.site.register(Prestamo)
+admin.site.register(Abono)

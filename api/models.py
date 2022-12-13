@@ -36,7 +36,7 @@ class User(AbstractUser):
         max_length=80, unique=True)
     username = models.CharField(max_length=45)
     rol = models.CharField(max_length=20, choices=Rol.choices, null=False)
-    documento = models.CharField(max_length=15, null=False)
+    documento = models.CharField(max_length=15, null=False, unique=True)
     ciudad = models.CharField(max_length=100, null=True)
     direccion = models.CharField(max_length=100, null=True)
     ocupacion = models.CharField(max_length=100, null=True)
@@ -58,10 +58,11 @@ class User(AbstractUser):
 class Ahorro(models.Model):
 
     idAhorro = models.AutoField(primary_key=True)
-    # idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
-    fecha = models.DateField()
-    descripcion = models.CharField(max_length=200)
-    monto = models.IntegerField()
+    DocAsociado = models.ForeignKey(
+        User, on_delete=models.CASCADE, to_field="documento")
+    fecha = models.DateField(default=now().date(), null=False)
+    descripcion = models.CharField(max_length=200, null=True)
+    monto = models.IntegerField(null=False)
     firmaDigital = models.CharField(max_length=200)
     tipoConsignacion = models.CharField(max_length=200)
 
@@ -72,7 +73,7 @@ class Ahorro(models.Model):
 class Multa(models.Model):
 
     idMulta = models.AutoField(primary_key=True)
-    # idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
+    #idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
     motivo = models.CharField(max_length=200)
     fecha = models.DateField()
     costo = models.IntegerField()
@@ -84,7 +85,7 @@ class Multa(models.Model):
 
 class CuotaManejo(models.Model):
     idCuotaManejo = models.AutoField(primary_key=True)
-    # idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
+    #idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
     fechaComienzo = models.DateField(auto_now=False, auto_now_add=False)
     fechaFin = models.DateField(auto_now=False, auto_now_add=False)
     tasaInteres = models.IntegerField()
@@ -155,9 +156,15 @@ class Prestamo(models.Model):
 class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
     idPrestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE)
-    monto = models.IntegerField()
-    fecha = models.DateField()
-    descripcion = models.CharField(max_length=200)
+    abona = models.OneToOneField(
+        User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
+    monto = models.IntegerField(null=False)
+    fecha = models.DateField(default=now().date(), null=False)
+    descripcion = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
         return self.idAbono
+
+    class Meta:
+        verbose_name = 'Abono'
+        verbose_name_plural = 'Abonos'
