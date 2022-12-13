@@ -140,8 +140,9 @@ class PrestamoList(generics.ListAPIView):
     serializer_class = PrestamoSerializer
     model = Prestamo
     permission_classes = [permissions.AllowAny]
-    # queryset = Prestamo.objects.all()
+    #queryset = Prestamo.objects.all()
 
+    
     def get(self, request):
         prestamos = list(Prestamo.objects.values())
         if len(prestamos) > 0:
@@ -232,7 +233,6 @@ class updatePrestamo(generics.UpdateAPIView):
         else:
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     """
-
 
 
 """SESION DEDICADA A AHORROS, Y TODO LO RELACIONADO CON ESTE"""
