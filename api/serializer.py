@@ -42,26 +42,18 @@ class UserSerializer(serializers.ModelSerializer):
 
 class PrestamoSerializer(serializers.Serializer):
     solicitudPrestamo = serializers.CharField()
-    codeudor = serializers.CharField()
-    deudor = serializers.CharField()
+    #codeudor = serializers.CharField()
+    #deudor = serializers.CharField()
     monto = serializers.IntegerField()
     fecha = serializers.DateField()
     estadoPrestamo = serializers.BooleanField()
     interes = serializers.FloatField()
     comision = serializers.IntegerField()
 
-    def to_representation(self, instance: Prestamo):
-        ret = {}
-        p: Prestamo = instance.Prestamo
-        ret['solicitudPrestamo'] = instance.solicitudPrestamo
-        ret['codeudor'] = instance.codeudor
-        ret['deudor'] = instance.deudor
-        ret['monto'] = instance.monto
-        ret['fecha'] = instance.fecha
-        ret['estadoPrestamo'] = instance.estadoPrestamo
-        ret['interes'] = instance.interes
-        ret['comision'] = instance.comision
-        return ret
+    def create(self, validated_data):
+        return Prestamo.objects.create(**validated_data)
+
+  
 
 
 class AhorroSerializer(serializers.Serializer):
@@ -76,3 +68,4 @@ class AhorroSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         return Ahorro.objects.create(**validated_data)
+

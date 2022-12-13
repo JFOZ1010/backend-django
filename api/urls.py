@@ -23,5 +23,8 @@ urlpatterns = [
     ##################################### URL's PRESTAMOS. ######################################
     path('prestamos/create', views.PrestamoCreate.as_view(),
          name='prestamos_create'),
-    path('prestamos/all', views.PrestamoList.as_view(), name='prestamos_list'),
+    path('prestamos/', views.PrestamoList.as_view(), name='prestamos_list'),
+    path('prestamos/<str:solicitudPrestamo>', views.PrestamoId.as_view(), name='prestamos_id'),
+    path('prestamos/delete/<str:solicitudPrestamo>', views.deletePrestamo.as_view(), name='prestamos_delete'),
+    path('prestamos/update/<str:solicitudPrestamo>', views.updatePrestamo.as_view(), name='prestamos_update'),
 ]
