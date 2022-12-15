@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email", "password",
-                  "rol", "first_name", "last_name", "is_active", "fechaNacimiento", "documento"]
+                  "rol", "first_name", "last_name", "is_active", "fechaNacimiento", "documento", "ciudad", "direccion", "ocupacion", "telefono"]
         constraints = [
             models.UniqueConstraint(fields=['email'], condition=models.Q(
                 is_deleted=False), name='unique_undeleted_name')
