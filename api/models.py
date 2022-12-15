@@ -133,7 +133,7 @@ class Prestamo(models.Model):
     # deudor es una llave foranea de cliente
     ## deudor = models.ForeignKey(User, on_delete=models.CASCADE)
     monto = models.IntegerField()
-    fecha = models.DateField(auto_now=False, auto_now_add=False)
+    fecha = models.DateField(default=now().date(), null=False)
     estadoPrestamo = models.BooleanField(default=False)
     interes = models.FloatField()
     comision = models.IntegerField()
@@ -150,7 +150,7 @@ class Prestamo(models.Model):
             return errors.append("Monto no valido")
 
     def __str__(self):
-        return self.solicitudPrestamo + " a: " + self.deudor
+        return self.solicitudPrestamo + " a: " + self.monto ##Cambiara por deudor luego
 
 
 class Abono(models.Model):
