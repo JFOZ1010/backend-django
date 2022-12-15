@@ -9,6 +9,7 @@ urlpatterns = [
     path("users/", views.UserView.as_view(), name="users_list_all"),
     path("login/", views.LoginView.as_view(), name="login"),
     path("users/<int:documento>", views.UserView.as_view(), name="user"),
+    path("users/create", views.CreateUserView.as_view(), name="create_user"),
     path("users/modify/<int:pk>", views.UserUpdate.as_view(), name="user_modify"),
 
     ##################################### URL's AHORROS. ######################################
@@ -26,9 +27,12 @@ urlpatterns = [
     path('prestamos/create', views.PrestamoCreate.as_view(),
          name='prestamos_create'),
     path('prestamos/', views.PrestamoList.as_view(), name='prestamos_list'),
-    path('prestamos/<str:solicitudPrestamo>', views.PrestamoId.as_view(), name='prestamos_id'),
-    path('prestamos/delete/<str:solicitudPrestamo>', views.deletePrestamo.as_view(), name='prestamos_delete'),
-    path('prestamos/update/<str:solicitudPrestamo>', views.updatePrestamo.as_view(), name='prestamos_update'),
+    path('prestamos/<str:solicitudPrestamo>',
+         views.PrestamoId.as_view(), name='prestamos_id'),
+    path('prestamos/delete/<str:solicitudPrestamo>',
+         views.deletePrestamo.as_view(), name='prestamos_delete'),
+    path('prestamos/update/<str:solicitudPrestamo>',
+         views.updatePrestamo.as_view(), name='prestamos_update'),
     ##################################### URL's ABONOS. ######################################
     path('abono/create', views.AbonoView.as_view(), name='abono_create'),
     path("abono/all", views.AbonoListAll.as_view(), name="abono_list_all"),
