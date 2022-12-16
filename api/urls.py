@@ -9,11 +9,11 @@ urlpatterns = [
     path("users/", views.UserView.as_view(), name="users_list_all"),
     path("login/", views.LoginView.as_view(), name="login"),
     path("users/<int:documento>", views.UserView.as_view(), name="user"),
-    path("users/create", views.CreateUserView.as_view(), name="create_user"),
+    path("users/create/", views.CreateUserView.as_view(), name="create_user"),
     path("users/modify/<int:pk>", views.UserUpdate.as_view(), name="user_modify"),
 
     ##################################### URL's AHORROS. ######################################
-    #path('ahorros', Ahorros.as_view(), name='ahorros_list'),
+    # path('ahorros', Ahorros.as_view(), name='ahorros_list'),
     path('ahorros/create', views.AhorrosCreate.as_view(), name='ahorros_create'),
     path('ahorros/all', views.AhorrosList.as_view(), name='ahorros_list'),
     path('ahorros/all/<int:documento>',
