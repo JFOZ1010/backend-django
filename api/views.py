@@ -56,8 +56,9 @@ class UserView(generics.GenericAPIView):
         except User.DoesNotExist:
             raise Http404("El usuario no existe")
 
-    def get(self, documento=0):
+    def get(self, *args, **kwargs):
         # Note the use of `get_queryset()` instead of `self.queryset`
+        documento = self.kwargs.get('documento')
         if documento > 0:
             user = self.get_object(documento)
             serializer = UserSerializer(user, many=False)
@@ -105,7 +106,6 @@ class LoginView(APIView):
         if user is not None:
             tokens = create_jwt_pair_for_user(user)
             serializer = UserSerializer(user, many=False)
-            print(serializer.data)
             response = {
                 "status": True,
                 "message": "Logueado correctamente",
@@ -153,7 +153,7 @@ class PrestamoList(generics.ListAPIView):
     serializer_class = PrestamoSerializer
     model = Prestamo
     permission_classes = [permissions.AllowAny]
-    #queryset = Prestamo.objects.all()
+    # queryset = Prestamo.objects.all()
 
     def get(self, request):
         prestamos = list(Prestamo.objects.values())
@@ -218,7 +218,7 @@ class updatePrestamo(generics.UpdateAPIView):
     serializer_class = PrestamoSerializer
     model = Prestamo
     permission_classes = [permissions.AllowAny]
-    #queryset= Prestamo.objects.all()
+    # queryset= Prestamo.objects.all()
 
     def getPrestamo(self, solicitudPrestamo):
         try:
@@ -304,7 +304,7 @@ class AhorrosUpdate(generics.UpdateAPIView):
     serializer_class = AhorroSerializer
     model = Ahorro
     permission_classes = [permissions.IsAuthenticated]
-    #queryset = Ahorro.objects.all()
+    # queryset = Ahorro.objects.all()
 
     def get_object(self, pk):
         try:
