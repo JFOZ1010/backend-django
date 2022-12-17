@@ -45,36 +45,41 @@ class CreateUserView(generics.CreateAPIView):
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class UserView(generics.GenericAPIView):
     serializer_class = UserSerializer
+    model = User
     permission_classes = [permissions.IsAuthenticated]
-    queryset = User.objects.all()
 
     def get_object(self, documento):
         try:
-            return User.objects.get(documento=documento)
-        except User.DoesNotExist:
+            return self.model.objects.get(documento=documento)
+        except self.model.DoesNotExist:
             raise Http404("El usuario no existe")
 
     def get(self, *args, **kwargs):
-        # Note the use of `get_queryset()` instead of `self.queryset`
-        documento = self.kwargs.get('documento')
-        if documento > 0:
-            user = self.get_object(documento)
-            serializer = UserSerializer(user, many=False)
-            return Response(data=serializer.data)
-        else:
-            queryset = self.get_queryset()
-            serializer = UserSerializer(queryset, many=True)
-            return Response(data=serializer.data)
+        documento = self.kwargs.get("documento")
+        user = self.get_object(documento)
+        serializer = UserSerializer(user, many=False)
+        return Response(data=serializer.data)
 
-    def delete(self, pk):
-        user = self.get_object(pk)
+    def delete(self, *args, **kwargs):
+        documento = self.kwargs.get("documento")
+        user = self.get_object(documento)
         if user.delete():
             return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
+class UserListAll(generics.ListAPIView):
+    serializer_class = UserSerializer
+    model = User
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = model.objects.all()
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class UserUpdate(generics.UpdateAPIView):
     serializer_class = UserSerializer
     model = User
@@ -82,8 +87,8 @@ class UserUpdate(generics.UpdateAPIView):
 
     def get_object(self, pk):
         try:
-            return User.objects.get(id=pk)
-        except User.DoesNotExist:
+            return self.model.objects.get(documento=pk)
+        except self.model.DoesNotExist:
             raise Http404("El usuario no existe")
 
     def put(self, request: Response, pk):
@@ -96,6 +101,7 @@ class UserUpdate(generics.UpdateAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
     permission_classes = []
 
