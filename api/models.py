@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.hashers import make_password
 from django.utils.timezone import now
 
 
@@ -12,10 +13,14 @@ class Rol(models.TextChoices):
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password, **extra_fields):
+
+        if not email:
+            raise ValueError('Users must have an email address')
+
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save()
+        user.password = make_password(password)
+        user.save(using=self.db)
         return user
 
     def create_superuser(self, email, password, **extra_fields):
@@ -133,7 +138,7 @@ class Prestamo(models.Model):
     # deudor es una llave foranea de cliente
     ## deudor = models.ForeignKey(User, on_delete=models.CASCADE)
     monto = models.IntegerField()
-    fecha = models.DateField(auto_now=False, auto_now_add=False)
+    fecha = models.DateField(default=now().date(), null=False)
     estadoPrestamo = models.BooleanField(default=False)
     interes = models.FloatField()
     comision = models.IntegerField()
@@ -150,7 +155,7 @@ class Prestamo(models.Model):
             return errors.append("Monto no valido")
 
     def __str__(self):
-        return self.solicitudPrestamo + " a: " + self.deudor
+        return self.solicitudPrestamo + " a: " + self.monto ##Cambiara por deudor luego
 
 
 class Abono(models.Model):

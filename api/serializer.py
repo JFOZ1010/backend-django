@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+from rest_framework.validators import ValidationError
 from django.utils.translation import gettext as _
 from api.models import Ahorro, Prestamo, User, Abono
-from rest_framework.validators import ValidationError
+from django.contrib.auth.hashers import make_password
 from django.db import models
 
 
@@ -14,7 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email", "password",
-                  "rol", "first_name", "last_name", "is_active", "fechaNacimiento", "documento"]
+                  "rol", "first_name", "last_name", "is_active", "fechaNacimiento", "documento", "ciudad", "direccion", "ocupacion", "telefono"]
         constraints = [
             models.UniqueConstraint(fields=['email'], condition=models.Q(
                 is_deleted=False), name='unique_undeleted_name')
@@ -26,6 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
         if email_exists and doc_exists:
             raise ValidationError(
                 'Ya hay un usuario con su correo y documento')
+        attrs['password'] = make_password(attrs['password'])
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
@@ -42,26 +44,16 @@ class UserSerializer(serializers.ModelSerializer):
 
 class PrestamoSerializer(serializers.Serializer):
     solicitudPrestamo = serializers.CharField()
-    codeudor = serializers.CharField()
-    deudor = serializers.CharField()
+    # codeudor = serializers.CharField()
+    # deudor = serializers.CharField()
     monto = serializers.IntegerField()
     fecha = serializers.DateField()
     estadoPrestamo = serializers.BooleanField()
     interes = serializers.FloatField()
     comision = serializers.IntegerField()
 
-    def to_representation(self, instance: Prestamo):
-        ret = {}
-        p: Prestamo = instance.Prestamo
-        ret['solicitudPrestamo'] = instance.solicitudPrestamo
-        ret['codeudor'] = instance.codeudor
-        ret['deudor'] = instance.deudor
-        ret['monto'] = instance.monto
-        ret['fecha'] = instance.fecha
-        ret['estadoPrestamo'] = instance.estadoPrestamo
-        ret['interes'] = instance.interes
-        ret['comision'] = instance.comision
-        return ret
+    def create(self, validated_data):
+        return Prestamo.objects.create(**validated_data)
 
 
 class AhorroSerializer(serializers.ModelSerializer):
