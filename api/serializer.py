@@ -75,7 +75,7 @@ class AbonoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Abono
-        fields = ["idAbono", "idPrestamo", "abona",
+        fields = ["idAbono", "idPrestamo", "cuentaAhorro", "abona",
                   "monto", "fecha", "descripcion"]
 
         def validate(self, attrs):
@@ -83,6 +83,8 @@ class AbonoSerializer(serializers.ModelSerializer):
                 documento=attrs["abona"]).exists()
             prestamos_exist = Prestamo.objects.filter(
                 idPrestamo=attrs["prestamo"]).exists()
+            ahorro_exist = Ahorro.objects.filter(
+                idAhorro=attrs["cuentaAhorro"]).exists()
             monto_nat = attrs["monto"] <= 0
 
             if abona_exist:
@@ -92,6 +94,10 @@ class AbonoSerializer(serializers.ModelSerializer):
             if prestamos_exist:
                 raise ValidationError(
                     "El prestamo no existe"
+                )
+            if ahorro_exist:
+                raise ValidationError(
+                    "No existe la cuenta de ahorro"
                 )
             if monto_nat:
                 raise ValidationError(
