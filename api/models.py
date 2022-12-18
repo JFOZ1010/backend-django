@@ -155,7 +155,7 @@ class Prestamo(models.Model):
             return errors.append("Monto no valido")
 
     def __str__(self):
-        return self.solicitudPrestamo + " a: " + self.monto  # Cambiara por deudor luego
+        return self.solicitudPrestamo + " a: " + self.monto ##Cambiara por deudor luego
 
 
 class Abono(models.Model):
