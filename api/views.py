@@ -244,24 +244,7 @@ class updatePrestamo(generics.UpdateAPIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    """
-    def put(self, *args, **kwargs):
-        pk = self.kwargs.get('solicitudPrestamo')
-        prestamo = self.getPrestamo(pk)
-        serializer = self.serializer_class(prestamo, data=self.request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
-        else:
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    """
-
-
 """SESION DEDICADA A AHORROS, Y TODO LO RELACIONADO CON ESTE"""
-
-
-# crear una clase based view para ahorros que herede de la clase View, y tome el serializador de ahorros
-
 
 # crear una vista para crear Ahorros, con el metodo post tomando como la APIView
 
@@ -278,9 +261,8 @@ class AhorrosCreate(generics.CreateAPIView):
         if serializer.is_valid():
             # guardar el serializer
             serializer.save()
-            # retornar el serializer.data, y el status de la peticion
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # si el serializer no es valido, retornar el serializer.errors, y el status de la peticion
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
