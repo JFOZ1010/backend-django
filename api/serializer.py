@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.validators import ValidationError
 from django.utils.translation import gettext as _
-from api.models import Ahorro, Prestamo, User, Abono
+from api.models import Ahorro, Prestamo, User, Abono, Multa
 from django.contrib.auth.hashers import make_password
 from django.db import models
 
@@ -104,3 +104,15 @@ class AbonoSerializer(serializers.ModelSerializer):
                     "Ingrese un monto válido"
                 )
             return super().validate(attrs)
+
+
+class SancionSerializer(serializers.Serializer):
+
+    class Meta:
+
+        model = Multa
+        fields = ["idAsociado", "motivo", "costo", "estadoMulta"]
+        #fields = "__all__"
+
+    def create(self, validated_data):
+        return Multa.objects.create(**validated_data)

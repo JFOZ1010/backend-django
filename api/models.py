@@ -64,7 +64,7 @@ class Ahorro(models.Model):
 
     idAhorro = models.AutoField(primary_key=True)
     DocAsociado = models.ForeignKey(
-        User, on_delete=models.CASCADE, to_field="documento")
+        User, on_delete=models.CASCADE)
     fecha = models.DateField(default=now().date(), null=False)
     descripcion = models.CharField(max_length=200, null=True)
     monto = models.IntegerField(null=False)
@@ -78,9 +78,10 @@ class Ahorro(models.Model):
 class Multa(models.Model):
 
     idMulta = models.AutoField(primary_key=True)
-    #idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
+    asociadoReferente = models.ForeignKey(
+        User, on_delete=models.CASCADE, to_field='documento', name="asociadoReferente")
     motivo = models.CharField(max_length=200)
-    fecha = models.DateField()
+    fecha = models.DateField(auto_now_add=True)
     costo = models.IntegerField()
     estadoMulta = models.BooleanField()
 
