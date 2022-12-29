@@ -134,9 +134,11 @@ class ReunionVirtual(Reunion):
 class Prestamo(models.Model):
     solicitudPrestamo = models.CharField(primary_key=True, max_length=30)
     # codeudor es una llave foranea de asociado
-    # codeudor = models.ForeignKey(User, on_delete=models.CASCADE)
+    codeudor = models.ForeignKey(
+        User, name='codeudor', null=False, on_delete=models.CASCADE, related_name='prestamoCodeudor')
     # deudor es una llave foranea de cliente
-    ## deudor = models.ForeignKey(User, on_delete=models.CASCADE)
+    deudor = models.ForeignKey(
+        User, name='deudor', null=False, on_delete=models.CASCADE, related_name='prestamoDeudor')
     monto = models.IntegerField()
     fecha = models.DateField(default=now().date(), null=False)
     estadoPrestamo = models.BooleanField(default=False)
@@ -155,7 +157,11 @@ class Prestamo(models.Model):
             return errors.append("Monto no valido")
 
     def __str__(self):
-        return self.solicitudPrestamo + " a: " + self.monto ##Cambiara por deudor luego
+        return self.solicitudPrestamo + " a: " + self.monto  # Cambiara por deudor luego
+
+    class Meta:
+        verbose_name = 'prestamo'
+        verbose_name_plural = 'prestamos'
 
 
 class Abono(models.Model):
