@@ -42,8 +42,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 class PrestamoSerializer(serializers.Serializer):
     solicitudPrestamo = serializers.CharField()
-    #codeudor = serializers.CharField()
-    #deudor = serializers.CharField()
+    #//////
+    codeudor = serializers.CharField()
+    deudor = serializers.CharField()
+    #////////
     monto = serializers.IntegerField()
     fecha = serializers.DateField()
     estadoPrestamo = serializers.BooleanField()
