@@ -11,8 +11,8 @@ from django.http import JsonResponse
 from django.http import Http404
 
 # Modulos locales
-from api.models import Abono, User, Ahorro, Prestamo
-from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer, AbonoSerializer
+from api.models import Abono, User, Ahorro, Prestamo, Multa
+from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer, AbonoSerializer, SancionSerializer
 from .tokens import create_jwt_pair_for_user
 
 # modulos nuevos que importo del framework DRF.
@@ -383,3 +383,87 @@ class AbonoListAll(generics.ListAPIView):
     model = Abono
     permission_classes = [permissions.IsAuthenticated]
     queryset = model.objects.all()
+
+
+""" SESIÓN DEDICADA SOLO A SANCIONES. """
+
+class SancionCreate(generics.CreateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    # crear un metodo POST con un try except para el manejo de errores
+    def post(self, request):
+        # crear un objeto de la clase SancionSerializer, pasandole como parametro el request.data
+        serializer = SancionSerializer(data=request.data)
+        # si el serializer es valido
+        if serializer.is_valid():
+            # guardar el serializer
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#una class de sancion list
+class SancionList(generics.ListAPIView):
+    serializer_class = SancionSerializer
+    model = Multa
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Multa.objects.all()
+
+#una class de sancion list de un user especifico con un filter.
+class SancionListUser(generics.RetrieveAPIView):
+    serializer_class = SancionSerializer
+    model = Multa
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, *args, **kwargs):
+        documento = self.kwargs.get('documento')
+        queryset = Multa.objects.filter(DocAsociado=documento).all()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
+
+#una class de sancion update
+class SancionUpdate(generics.UpdateAPIView):
+    serializer_class = SancionSerializer
+    model = Multa
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, pk):
+        try:
+            return Multa.objects.get(pk=pk)
+        except Multa.DoesNotExist:
+            raise NotFound(detail="La sanción no existe")
+
+    def put(self, *args, **kwargs):
+        pk = self.kwargs.get('pk')
+        sancion = self.get_object(pk)
+        serializer = self.serializer_class(sancion, data=self.request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#una class de sancion delete
+class SancionDelete(generics.DestroyAPIView):
+    serializer_class = SancionSerializer
+    model = Multa
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, pk):
+        try:
+            return Multa.objects.get(pk=pk)
+        except Multa.DoesNotExist:
+            raise NotFound(detail="La sanción no existe")
+
+    def delete(self, request, *args, **kwargs):
+        pk = self.kwargs.get('pk')
+        sancion = self.get_object(pk)
+        if sancion.delete():
+            return Response(status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(data={
+                "No existe la sanción"
+            }, status=status.HTTP_204_NO_CONTENT)
+
+
+
