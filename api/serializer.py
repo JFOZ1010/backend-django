@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-from django.utils.translation import gettext as _
-from api.models import Ahorro, Prestamo, User, Abono
 from rest_framework.validators import ValidationError
+from django.utils.translation import gettext as _
+from api.models import Ahorro, Prestamo, User, Abono, Multa
+from django.contrib.auth.hashers import make_password
 from django.db import models
 
 
@@ -14,7 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email", "password",
-                  "rol", "first_name", "last_name", "is_active", "fechaNacimiento", "documento"]
+                  "rol", "first_name", "last_name", "is_active", "fechaNacimiento", "documento", "ciudad", "direccion", "ocupacion", "telefono"]
         constraints = [
             models.UniqueConstraint(fields=['email'], condition=models.Q(
                 is_deleted=False), name='unique_undeleted_name')
@@ -26,6 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
         if email_exists and doc_exists:
             raise ValidationError(
                 'Ya hay un usuario con su correo y documento')
+        attrs['password'] = make_password(attrs['password'])
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
@@ -42,10 +44,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 class PrestamoSerializer(serializers.Serializer):
     solicitudPrestamo = serializers.CharField()
-    #//////
-    codeudor = serializers.CharField()
-    deudor = serializers.CharField()
-    #////////
+    # codeudor = serializers.CharField()
+    # deudor = serializers.CharField()
     monto = serializers.IntegerField()
     fecha = serializers.DateField()
     estadoPrestamo = serializers.BooleanField()
@@ -54,8 +54,6 @@ class PrestamoSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         return Prestamo.objects.create(**validated_data)
-
-  
 
 
 class AhorroSerializer(serializers.ModelSerializer):
@@ -77,7 +75,7 @@ class AbonoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Abono
-        fields = ["idAbono", "idPrestamo", "abona",
+        fields = ["idAbono", "idPrestamo", "cuentaAhorro", "abona",
                   "monto", "fecha", "descripcion"]
 
         def validate(self, attrs):
@@ -85,6 +83,8 @@ class AbonoSerializer(serializers.ModelSerializer):
                 documento=attrs["abona"]).exists()
             prestamos_exist = Prestamo.objects.filter(
                 idPrestamo=attrs["prestamo"]).exists()
+            ahorro_exist = Ahorro.objects.filter(
+                idAhorro=attrs["cuentaAhorro"]).exists()
             monto_nat = attrs["monto"] <= 0
 
             if abona_exist:
@@ -95,8 +95,24 @@ class AbonoSerializer(serializers.ModelSerializer):
                 raise ValidationError(
                     "El prestamo no existe"
                 )
+            if ahorro_exist:
+                raise ValidationError(
+                    "No existe la cuenta de ahorro"
+                )
             if monto_nat:
                 raise ValidationError(
                     "Ingrese un monto válido"
                 )
             return super().validate(attrs)
+
+
+class SancionSerializer(serializers.Serializer):
+
+    class Meta:
+
+        model = Multa
+        fields = ["idAsociado", "motivo", "costo", "estadoMulta"]
+        #fields = "__all__"
+
+    def create(self, validated_data):
+        return Multa.objects.create(**validated_data)

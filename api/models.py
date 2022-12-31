@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.hashers import make_password
 from django.utils.timezone import now
 
 
@@ -12,10 +13,14 @@ class Rol(models.TextChoices):
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password, **extra_fields):
+
+        if not email:
+            raise ValueError('Users must have an email address')
+
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save()
+        user.password = make_password(password)
+        user.save(using=self.db)
         return user
 
     def create_superuser(self, email, password, **extra_fields):
@@ -59,7 +64,7 @@ class Ahorro(models.Model):
 
     idAhorro = models.AutoField(primary_key=True)
     DocAsociado = models.ForeignKey(
-        User, on_delete=models.CASCADE, to_field="documento")
+        User, on_delete=models.CASCADE)
     fecha = models.DateField(default=now().date(), null=False)
     descripcion = models.CharField(max_length=200, null=True)
     monto = models.IntegerField(null=False)
@@ -74,8 +79,9 @@ class Multa(models.Model):
 
     idMulta = models.AutoField(primary_key=True)
     #idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
+    idAsociado = models.ForeignKey( User, on_delete=models.CASCADE, to_field='documento')
     motivo = models.CharField(max_length=200)
-    fecha = models.DateField()
+    fecha = models.DateField(auto_now_add=True)
     costo = models.IntegerField()
     estadoMulta = models.BooleanField()
 
@@ -158,11 +164,14 @@ class Prestamo(models.Model):
         verbose_name = 'prestamo'
         verbose_name_plural = 'prestamos'
 
+
 class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
     idPrestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE)
     abona = models.OneToOneField(
         User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
+    cuentaAhorro = models.OneToOneField(
+        Ahorro, name="cuentaAhorro", null=False, to_field="idAhorro", on_delete=models.CASCADE)
     monto = models.IntegerField(null=False)
     fecha = models.DateField(default=now().date(), null=False)
     descripcion = models.CharField(max_length=200, blank=True)
@@ -173,3 +182,5 @@ class Abono(models.Model):
     class Meta:
         verbose_name = 'Abono'
         verbose_name_plural = 'Abonos'
+
+
