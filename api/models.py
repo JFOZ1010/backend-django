@@ -3,6 +3,8 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.hashers import make_password
 from django.utils.timezone import now
+from django.core.validators import MinValueValidator
+from datetime import date
 
 
 class Rol(models.TextChoices):
@@ -103,33 +105,41 @@ class CuotaManejo(models.Model):
 # modelo de reunion , el cual es modelo padre de
 # reunion virtual y reunion presencial
 class Reunion(models.Model):
-    idReunion = models.AutoField(primary_key=True)
     # asociado es una llave foranea de asociado de tipo onetoone Field
-    # asociado = models.ForeignKey(User, on_delete=models.CASCADE)
-    fecha = models.DateField(auto_now=False, auto_now_add=False)
-    hora = models.CharField(max_length=30)
-    motivo = models.CharField(max_length=60)
-    tipoReunion = models.CharField(max_length=10)
-    asistencia = models.BooleanField(default=False)
+    idReunion = models.AutoField(primary_key=True)
+    reunionAsociado = models.ForeignKey(
+        User, on_delete=models.CASCADE, to_field="documento")
+    fechaCreacion = models.DateTimeField(auto_now_add=True, null=False)
+    fecha = models.DateField(null=False)
+    hora = models.TimeField(null=False)
+    motivo = models.CharField(max_length=300)
+    tipoReunion = models.CharField(max_length=10, null=False)
+    asistencia = models.BooleanField(default=True, null=False)
 
     def __str__(self):
-        return self.idReunion
+        return self.idReunion + self.asociado
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['reunionAsociado', 'idReunion'], name='unique_reunionAsociado_idReunion_combination'
+            )
+        ]
 
 
 class ReunionPresencial(Reunion):
-    sitio = models.CharField(max_length=50)
-    costo = models.IntegerField()
+    sitio = models.CharField(max_length=100)
+    costo = models.IntegerField(null=False, validators=[MinValueValidator(3)])
 
     def __str__(self):
-        return self.idReunion
+        return self.id_reunionPresencial
 
 
 class ReunionVirtual(Reunion):
-    enlace = models.CharField(max_length=50)
-    costo = models.IntegerField()
+    enlace = models.CharField(max_length=200, null=False)
 
     def __str__(self):
-        return self.idReunion
+        return self.id_reunionVirtual
 
 
 class Prestamo(models.Model):

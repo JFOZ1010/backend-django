@@ -44,10 +44,28 @@ urlpatterns = [
     path('abono/modify/<int:pk>', views.AbonoView.as_view(), name='abono_modify'),
     path('abono/delete/<int:pk>', views.AbonoView.as_view(), name='abono_modify'),
 
-     ##################################### URL's SANCIONES. ######################################
-     path('sanciones/create', views.SancionCreate.as_view(), name='sanciones_create'),
-     path('sanciones/', views.SancionList.as_view(), name='sanciones_list'),
-     path('sancion/update', views.SancionUpdate.as_view(), name='sanciones_update'),
-     path('sancion/delete', views.SancionDelete.as_view(), name='sanciones_delete'),
-     
+    ##################################### URL's SANCIONES. ######################################
+    path('sanciones/create', views.SancionCreate.as_view(), name='sanciones_create'),
+    path('sanciones/', views.SancionList.as_view(), name='sanciones_list'),
+    path('sancion/update', views.SancionUpdate.as_view(), name='sanciones_update'),
+    path('sancion/delete', views.SancionDelete.as_view(), name='sanciones_delete'),
+
+    ##################################### URL's Reuniones. ######################################
+    path('reuniones-presencial/create', views.ReunionPresencialCreateView.as_view(),
+         name='reunionesPresencial_create'),
+    path('reuniones-virtual/create', views.ReunionVirtualCreateView.as_view(),
+         name='reunionesVirtual_create'),
+    path("reuniones-presencial/all",
+         views.ReunionPresencialListAll.as_view(), name="reunionesPresencial_listAll"),
+    path("reuniones-virtual/all", views.ReunionVirtualListAll.as_view(),
+         name="reunionesVirtual_listAll"),
+    path("reuniones-presencial/update/<int:id>",
+         views.ReunionPresencialUpdateView.as_view(), name="reunionesPresencial_update"),
+    path("reuniones-virtual/update/<int:id>",
+         views.ReunionVirtualUpdateView.as_view(), name="reunionesVirtual_update"),
+    path("reuniones-presencial/delete/<int:id>",
+         views.ReunionPresencialDeleteView.as_view(), name="reunionesPresencial_delete"),
+    path("reuniones-virtual/delete/<int:id>",
+         views.ReunionVirtualDeleteView.as_view(), name="reunionesVirtual_delete"),
+
 ]
