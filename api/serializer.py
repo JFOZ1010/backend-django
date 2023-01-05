@@ -42,15 +42,21 @@ class UserSerializer(serializers.ModelSerializer):
 # Serializacion para prestamos
 
 
-class PrestamoSerializer(serializers.Serializer):
-    solicitudPrestamo = serializers.CharField()
-    # codeudor = serializers.CharField()
-    # deudor = serializers.CharField()
+class PrestamoSerializer(serializers.ModelSerializer):
+    '''    
+solicitudPrestamo = serializers.CharField()
+    codeudor_id = serializers.IntegerField()
+    deudor_id = serializers.IntegerField()
     monto = serializers.IntegerField()
     fecha = serializers.DateField()
     estadoPrestamo = serializers.BooleanField()
     interes = serializers.FloatField()
-    comision = serializers.IntegerField()
+    comision = serializers.IntegerField()'''
+
+    class Meta:
+        model = Prestamo
+        fields = ["solicitudPrestamo", "codeudor", "deudor", "monto",
+                  "fecha", "estadoPrestamo", "interes","comision"]
 
     def create(self, validated_data):
         return Prestamo.objects.create(**validated_data)
