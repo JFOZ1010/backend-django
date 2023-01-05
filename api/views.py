@@ -217,32 +217,6 @@ class deletePrestamo(generics.GenericAPIView):
 
 # Actualizar o Put Prestamo
 
-'''
-@method_decorator(csrf_exempt, name='dispatch')
-class updatePrestamo(generics.UpdateAPIView):
-
-    serializer_class = PrestamoSerializer
-    model = Prestamo
-    permission_classes = [permissions.AllowAny]
-    # queryset= Prestamo.objects.all()
-
-    def getPrestamo(self, solicitudPrestamo):
-        try:
-            return Prestamo.objects.get(solicitudPrestamo=solicitudPrestamo)
-        except Prestamo.DoesNotExist:
-            raise Http404("El Prestamo no existe")
-
-    def put(self, request: Response, solicitudPrestamo=''):
-        prestamo = self.getPrestamo(solicitudPrestamo)
-
-        serializer = self.serializer_class(
-            instance=prestamo, data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)'''
 
 @method_decorator(csrf_exempt, name='dispatch')
 class updatePrestamo(generics.UpdateAPIView):
