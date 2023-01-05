@@ -201,9 +201,9 @@ class EstadoCuenta(models.Model):
 class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
     idPrestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE)
-    abona = models.OneToOneField(
+    abona = models.ForeignKey(
         User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
-    cuentaAhorro = models.OneToOneField(
+    cuentaAhorro = models.ForeignKey(
         Ahorro, name="cuentaAhorro", null=False, to_field="idAhorro", on_delete=models.CASCADE)
     monto = models.IntegerField(null=False)
     fecha = models.DateField(auto_now_add=True, null=False)

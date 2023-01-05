@@ -221,7 +221,7 @@ class deletePrestamo(generics.GenericAPIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class updatePrestamo(generics.UpdateAPIView):
     serializer_class = PrestamoSerializer
-    model= Prestamo
+    model = Prestamo
     permission_classes = [permissions.AllowAny]
 
     def getPrestamo(self, solicitudPrestamo):
@@ -229,13 +229,13 @@ class updatePrestamo(generics.UpdateAPIView):
             return Prestamo.objects.get(solicitudPrestamo=solicitudPrestamo)
         except Prestamo.DoesNotExist:
             raise NotFound(detail='Prestamo no existe')
-    
+
     def put(self, *args, **kwargs):
-        soliPrestamo=self.kwargs.get('solicitudPrestamo')
+        soliPrestamo = self.kwargs.get('solicitudPrestamo')
         print(soliPrestamo)
         prestamo = self.getPrestamo(soliPrestamo)
         serializer = self.serializer_class(prestamo, data=self.request.data)
-        
+
         if serializer.is_valid():
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
@@ -269,7 +269,7 @@ class AhorrosCreate(generics.CreateAPIView):
 class AhorrosList(generics.ListAPIView):
     serializer_class = AhorroSerializer
     model = Ahorro
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = Ahorro.objects.all()
 
 
@@ -341,7 +341,7 @@ class AhorrosDelete(generics.DestroyAPIView):
 class AbonoView(generics.GenericAPIView):
     serializer_class = AbonoSerializer
     model = Abono
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get_object(self, pk):
         try:
@@ -352,23 +352,28 @@ class AbonoView(generics.GenericAPIView):
     def post(self, request: Response):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+            serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
-    def get(self, documento):
+    def get(self, *args, **kwargs):
+        documento = self.kwargs.get('documento')
         queryset = self.model.objects.filter(abona=documento).all()
         serializer = self.serializer_class(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
 
-    def put(self, request: Response, pk):
+    def put(self, request: Request, *args, **kwargs):
+        pk = self.kwargs.get('pk')
         abono = self.get_object(pk)
         serializer = self.serializer_class(instance=abono, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
-    def delete(self, pk):
+    def delete(self, *args, **kwargs):
+        pk = self.kwargs.get('pk')
         abono = self.get_object(pk)
         if abono.delete():
             return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
@@ -380,7 +385,7 @@ class AbonoView(generics.GenericAPIView):
 class AbonoListAll(generics.ListAPIView):
     serializer_class = AbonoSerializer
     model = Abono
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = model.objects.all()
 
 
