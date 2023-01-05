@@ -1,6 +1,10 @@
 from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.hashers import make_password
+from django.utils.timezone import now
+from django.core.validators import MinValueValidator
+from datetime import date
 
 
 class Rol(models.TextChoices):
@@ -11,10 +15,14 @@ class Rol(models.TextChoices):
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password, **extra_fields):
+
+        if not email:
+            raise ValueError('Users must have an email address')
+
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save()
+        user.password = make_password(password)
+        user.save(using=self.db)
         return user
 
     def create_superuser(self, email, password, **extra_fields):
@@ -35,7 +43,7 @@ class User(AbstractUser):
         max_length=80, unique=True)
     username = models.CharField(max_length=45)
     rol = models.CharField(max_length=20, choices=Rol.choices, null=False)
-    documento = models.CharField(max_length=15, null=False)
+    documento = models.CharField(max_length=15, null=False, unique=True)
     ciudad = models.CharField(max_length=100, null=True)
     direccion = models.CharField(max_length=100, null=True)
     ocupacion = models.CharField(max_length=100, null=True)
@@ -57,10 +65,11 @@ class User(AbstractUser):
 class Ahorro(models.Model):
 
     idAhorro = models.AutoField(primary_key=True)
-    # idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
-    fecha = models.DateField()
-    descripcion = models.CharField(max_length=200)
-    monto = models.IntegerField()
+    DocAsociado = models.ForeignKey(
+        User, on_delete=models.CASCADE, to_field="documento")
+    fecha = models.DateField(auto_now_add=True, null=False)
+    descripcion = models.CharField(max_length=200, null=True)
+    monto = models.IntegerField(null=False)
     firmaDigital = models.CharField(max_length=200)
     tipoConsignacion = models.CharField(max_length=200)
 
@@ -71,9 +80,10 @@ class Ahorro(models.Model):
 class Multa(models.Model):
 
     idMulta = models.AutoField(primary_key=True)
-    # idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
+    asociadoReferente = models.ForeignKey(
+        User, on_delete=models.CASCADE, to_field='documento', name="asociadoReferente")
     motivo = models.CharField(max_length=200)
-    fecha = models.DateField()
+    fecha = models.DateField(auto_now_add=True)
     costo = models.IntegerField()
     estadoMulta = models.BooleanField()
 
@@ -83,7 +93,7 @@ class Multa(models.Model):
 
 class CuotaManejo(models.Model):
     idCuotaManejo = models.AutoField(primary_key=True)
-    # idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
+    #idAsociado = models.ForeignKey(User, on_delete=models.CASCADE)
     fechaComienzo = models.DateField(auto_now=False, auto_now_add=False)
     fechaFin = models.DateField(auto_now=False, auto_now_add=False)
     tasaInteres = models.IntegerField()
@@ -95,43 +105,53 @@ class CuotaManejo(models.Model):
 # modelo de reunion , el cual es modelo padre de
 # reunion virtual y reunion presencial
 class Reunion(models.Model):
-    idReunion = models.AutoField(primary_key=True)
     # asociado es una llave foranea de asociado de tipo onetoone Field
-    # asociado = models.ForeignKey(User, on_delete=models.CASCADE)
-    fecha = models.DateField(auto_now=False, auto_now_add=False)
-    hora = models.CharField(max_length=30)
-    motivo = models.CharField(max_length=60)
-    tipoReunion = models.CharField(max_length=10)
-    asistencia = models.BooleanField(default=False)
+    idReunion = models.AutoField(primary_key=True)
+    reunionAsociado = models.ForeignKey(
+        User, on_delete=models.CASCADE, to_field="documento")
+    fechaCreacion = models.DateTimeField(auto_now_add=True, null=False)
+    fecha = models.DateField(null=False)
+    hora = models.TimeField(null=False)
+    motivo = models.CharField(max_length=300)
+    tipoReunion = models.CharField(max_length=10, null=False)
+    asistencia = models.BooleanField(default=True, null=False)
 
     def __str__(self):
-        return self.idReunion
+        return self.idReunion + self.asociado
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['reunionAsociado', 'idReunion'], name='unique_reunionAsociado_idReunion_combination'
+            )
+        ]
 
 
 class ReunionPresencial(Reunion):
-    sitio = models.CharField(max_length=50)
-    costo = models.IntegerField()
+    sitio = models.CharField(max_length=100)
+    costo = models.IntegerField(null=False, validators=[MinValueValidator(3)])
 
     def __str__(self):
-        return self.idReunion
+        return self.id_reunionPresencial
 
 
 class ReunionVirtual(Reunion):
-    enlace = models.CharField(max_length=50)
-    costo = models.IntegerField()
+    enlace = models.CharField(max_length=200, null=False)
 
     def __str__(self):
-        return self.idReunion
+        return self.id_reunionVirtual
 
 
 class Prestamo(models.Model):
     solicitudPrestamo = models.CharField(primary_key=True, max_length=30)
     # codeudor es una llave foranea de asociado
-    # codeudor = models.ForeignKey(User, on_delete=models.CASCADE)
+    codeudor = models.ForeignKey(
+        User, name='codeudor', null=False, on_delete=models.CASCADE, related_name='prestamoCodeudor')
     # deudor es una llave foranea de cliente
-    ## deudor = models.ForeignKey(User, on_delete=models.CASCADE)
+    deudor = models.ForeignKey(
+        User, name='deudor', null=False, on_delete=models.CASCADE, related_name='prestamoDeudor')
     monto = models.IntegerField()
-    fecha = models.DateField(auto_now=False, auto_now_add=False)
+    fecha = models.DateField(default=now().date(), null=False)
     estadoPrestamo = models.BooleanField(default=False)
     interes = models.FloatField()
     comision = models.IntegerField()
@@ -148,15 +168,50 @@ class Prestamo(models.Model):
             return errors.append("Monto no valido")
 
     def __str__(self):
-        return self.solicitudPrestamo + " a: " + self.deudor
+        return self.solicitudPrestamo + " a: " + self.deudor  # Cambiara por deudor luego
+
+    class Meta:
+        verbose_name = 'prestamo'
+        verbose_name_plural = 'prestamos'
+
+
+####
+'''
+#Estado de cuenta
+class EstadoCuenta(models.Model):
+    idEstado= models.AutoField(primary_key=True),
+    #Llave foranea a User:
+    idAsociado= models.ForeignKey(
+        User, name='asociado', null=False, on_delete=models.CASCADE, related_name='estadoAsociado'),
+    #Llaves foraneas a Ahorro:
+    montoAhorrado= models.ForeignKey(Ahorro, name='monto',null=False, on_delete=models.CASCADE, related_name='montoAhorrado'),
+    fechaAhorro=models.ForeignKey(Ahorro, name='fecha',null=False, on_delete=models.CASCADE, related_name='fechaAhorro'),
+    #Llave foranea a Prestamo:
+    prestamosActivos= models.ForeignKey(
+    Prestamo, name='prestamo', null=False, on_delete=models.CASCADE, related_name='prestamosActivos'),
+    #Nuevos campos:
+    fechaGenerada=models.DateField(default=now().date(), null=False),
+    retiroGanancia= models.IntegerField(null=False),
+    montoActual= models.IntegerField(null=False),
+    gananciaActual= models.IntegerField(null=False)
+####
+'''
 
 
 class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
     idPrestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE)
-    monto = models.IntegerField()
-    fecha = models.DateField()
-    descripcion = models.CharField(max_length=200)
+    abona = models.OneToOneField(
+        User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
+    cuentaAhorro = models.OneToOneField(
+        Ahorro, name="cuentaAhorro", null=False, to_field="idAhorro", on_delete=models.CASCADE)
+    monto = models.IntegerField(null=False)
+    fecha = models.DateField(auto_now_add=True, null=False)
+    descripcion = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
         return self.idAbono
+
+    class Meta:
+        verbose_name = 'Abono'
+        verbose_name_plural = 'Abonos'

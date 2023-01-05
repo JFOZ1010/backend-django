@@ -1,0 +1,22 @@
+Reunion presencial:
+{
+    "reunionAsociado":"123456789",
+    "fecha":"2023-01-05",
+    "hora":"13:00",
+    "motivo":"Yo hago lo que me da la gana",
+    "tipoReunion":"Presencial",
+    "asistencia":"true",
+    "sitio":"cali",
+    "costo":3000
+}
+
+Reunion virtual:
+{
+    "reunionAsociado":"123456789",
+    "fecha":"2023-01-05",
+    "hora":"13:00",
+    "motivo":"Yo hago lo que me da la gana",
+    "tipoReunion":"Virtual",
+    "asistencia":"true",
+    "enlace":"https://meet.google.com/vua-gpej-pkf"
+}
