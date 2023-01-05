@@ -47,7 +47,7 @@ urlpatterns = [
      ##################################### URL's SANCIONES. ######################################
      path('sanciones/create', views.SancionCreate.as_view(), name='sanciones_create'),
      path('sanciones/', views.SancionList.as_view(), name='sanciones_list'),
-     path('sancion/update', views.SancionUpdate.as_view(), name='sanciones_update'),
-     path('sancion/delete', views.SancionDelete.as_view(), name='sanciones_delete'),
+     path('sancion/update/<int:pk>', views.SancionUpdate.as_view(), name='sanciones_update'),
+     path('sancion/delete/<int:pk>', views.SancionDelete.as_view(), name='sanciones_delete'),
      
 ]
