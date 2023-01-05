@@ -140,7 +140,7 @@ class PrestamoCreate(generics.CreateAPIView):
 
 # crear un metodo POST con un try except para el manejo de errores
     def post(self, request):
-        # crear un objeto de la clase AhorroSerializer, pasandole como parametro el request.data
+        # crear un objeto de la clase PrestamoSerializer, pasandole como parametro el request.data
         serializer = PrestamoSerializer(data=request.data)
     # si el serializer es valido
         if serializer.is_valid():
@@ -220,29 +220,27 @@ class deletePrestamo(generics.GenericAPIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class updatePrestamo(generics.UpdateAPIView):
-
     serializer_class = PrestamoSerializer
-    model = Prestamo
+    model= Prestamo
     permission_classes = [permissions.AllowAny]
-    # queryset= Prestamo.objects.all()
 
     def getPrestamo(self, solicitudPrestamo):
         try:
             return Prestamo.objects.get(solicitudPrestamo=solicitudPrestamo)
         except Prestamo.DoesNotExist:
-            raise Http404("El Prestamo no existe")
-
-    def put(self, request: Response, solicitudPrestamo=''):
-        prestamo = self.getPrestamo(solicitudPrestamo)
-
-        serializer = self.serializer_class(
-            instance=prestamo, data=request.data)
-
+            raise NotFound(detail='Prestamo no existe')
+    
+    def put(self, *args, **kwargs):
+        soliPrestamo=self.kwargs.get('solicitudPrestamo')
+        print(soliPrestamo)
+        prestamo = self.getPrestamo(soliPrestamo)
+        serializer = self.serializer_class(prestamo, data=self.request.data)
+        
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 """SESION DEDICADA A AHORROS, Y TODO LO RELACIONADO CON ESTE"""
 

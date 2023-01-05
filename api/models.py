@@ -158,13 +158,33 @@ class Prestamo(models.Model):
             return errors.append("Monto no valido")
 
     def __str__(self):
-        return self.solicitudPrestamo + " a: " + self.monto  # Cambiara por deudor luego
+        return self.solicitudPrestamo + " a: " + self.deudor  # Cambiara por deudor luego
 
     class Meta:
         verbose_name = 'prestamo'
         verbose_name_plural = 'prestamos'
 
-
+####
+'''
+#Estado de cuenta
+class EstadoCuenta(models.Model):
+    idEstado= models.AutoField(primary_key=True),
+    #Llave foranea a User:
+    idAsociado= models.ForeignKey(
+        User, name='asociado', null=False, on_delete=models.CASCADE, related_name='estadoAsociado'),
+    #Llaves foraneas a Ahorro:
+    montoAhorrado= models.ForeignKey(Ahorro, name='monto',null=False, on_delete=models.CASCADE, related_name='montoAhorrado'),
+    fechaAhorro=models.ForeignKey(Ahorro, name='fecha',null=False, on_delete=models.CASCADE, related_name='fechaAhorro'),
+    #Llave foranea a Prestamo:
+    prestamosActivos= models.ForeignKey(
+    Prestamo, name='prestamo', null=False, on_delete=models.CASCADE, related_name='prestamosActivos'),
+    #Nuevos campos:
+    fechaGenerada=models.DateField(default=now().date(), null=False),
+    retiroGanancia= models.IntegerField(null=False),
+    montoActual= models.IntegerField(null=False),
+    gananciaActual= models.IntegerField(null=False)
+####
+'''
 class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
     idPrestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE)
