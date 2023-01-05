@@ -3,6 +3,8 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.hashers import make_password
 from django.utils.timezone import now
+from django.core.validators import MinValueValidator
+from datetime import date
 
 
 class Rol(models.TextChoices):
@@ -65,7 +67,7 @@ class Ahorro(models.Model):
     idAhorro = models.AutoField(primary_key=True)
     DocAsociado = models.ForeignKey(
         User, on_delete=models.CASCADE, to_field="documento")
-    fecha = models.DateField(default=now().date(), null=False)
+    fecha = models.DateField(auto_now_add=True, null=False)
     descripcion = models.CharField(max_length=200, null=True)
     monto = models.IntegerField(null=False)
     firmaDigital = models.CharField(max_length=200)
@@ -103,33 +105,41 @@ class CuotaManejo(models.Model):
 # modelo de reunion , el cual es modelo padre de
 # reunion virtual y reunion presencial
 class Reunion(models.Model):
-    idReunion = models.AutoField(primary_key=True)
     # asociado es una llave foranea de asociado de tipo onetoone Field
-    # asociado = models.ForeignKey(User, on_delete=models.CASCADE)
-    fecha = models.DateField(auto_now=False, auto_now_add=False)
-    hora = models.CharField(max_length=30)
-    motivo = models.CharField(max_length=60)
-    tipoReunion = models.CharField(max_length=10)
-    asistencia = models.BooleanField(default=False)
+    idReunion = models.AutoField(primary_key=True)
+    reunionAsociado = models.ForeignKey(
+        User, on_delete=models.CASCADE, to_field="documento")
+    fechaCreacion = models.DateTimeField(auto_now_add=True, null=False)
+    fecha = models.DateField(null=False)
+    hora = models.TimeField(null=False)
+    motivo = models.CharField(max_length=300)
+    tipoReunion = models.CharField(max_length=10, null=False)
+    asistencia = models.BooleanField(default=True, null=False)
 
     def __str__(self):
-        return self.idReunion
+        return self.idReunion + self.asociado
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['reunionAsociado', 'idReunion'], name='unique_reunionAsociado_idReunion_combination'
+            )
+        ]
 
 
 class ReunionPresencial(Reunion):
-    sitio = models.CharField(max_length=50)
-    costo = models.IntegerField()
+    sitio = models.CharField(max_length=100)
+    costo = models.IntegerField(null=False, validators=[MinValueValidator(3)])
 
     def __str__(self):
-        return self.idReunion
+        return self.id_reunionPresencial
 
 
 class ReunionVirtual(Reunion):
-    enlace = models.CharField(max_length=50)
-    costo = models.IntegerField()
+    enlace = models.CharField(max_length=200, null=False)
 
     def __str__(self):
-        return self.idReunion
+        return self.id_reunionVirtual
 
 
 class Prestamo(models.Model):
@@ -158,11 +168,34 @@ class Prestamo(models.Model):
             return errors.append("Monto no valido")
 
     def __str__(self):
-        return self.solicitudPrestamo + " a: " + self.monto  # Cambiara por deudor luego
+        return self.solicitudPrestamo + " a: " + self.deudor  # Cambiara por deudor luego
 
     class Meta:
         verbose_name = 'prestamo'
         verbose_name_plural = 'prestamos'
+
+
+####
+'''
+#Estado de cuenta
+class EstadoCuenta(models.Model):
+    idEstado= models.AutoField(primary_key=True),
+    #Llave foranea a User:
+    idAsociado= models.ForeignKey(
+        User, name='asociado', null=False, on_delete=models.CASCADE, related_name='estadoAsociado'),
+    #Llaves foraneas a Ahorro:
+    montoAhorrado= models.ForeignKey(Ahorro, name='monto',null=False, on_delete=models.CASCADE, related_name='montoAhorrado'),
+    fechaAhorro=models.ForeignKey(Ahorro, name='fecha',null=False, on_delete=models.CASCADE, related_name='fechaAhorro'),
+    #Llave foranea a Prestamo:
+    prestamosActivos= models.ForeignKey(
+    Prestamo, name='prestamo', null=False, on_delete=models.CASCADE, related_name='prestamosActivos'),
+    #Nuevos campos:
+    fechaGenerada=models.DateField(default=now().date(), null=False),
+    retiroGanancia= models.IntegerField(null=False),
+    montoActual= models.IntegerField(null=False),
+    gananciaActual= models.IntegerField(null=False)
+####
+'''
 
 
 class Abono(models.Model):
@@ -173,7 +206,7 @@ class Abono(models.Model):
     cuentaAhorro = models.OneToOneField(
         Ahorro, name="cuentaAhorro", null=False, to_field="idAhorro", on_delete=models.CASCADE)
     monto = models.IntegerField(null=False)
-    fecha = models.DateField(default=now().date(), null=False)
+    fecha = models.DateField(auto_now_add=True, null=False)
     descripcion = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
