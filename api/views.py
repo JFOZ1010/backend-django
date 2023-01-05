@@ -11,8 +11,8 @@ from django.http import JsonResponse
 from django.http import Http404
 
 # Modulos locales
-from api.models import Abono, User, Ahorro, Prestamo, Multa
-from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer, AbonoSerializer, SancionSerializer
+from api.models import Abono, User, Ahorro, Prestamo, Multa, Reunion, ReunionVirtual, ReunionPresencial
+from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer, AbonoSerializer, SancionSerializer, ReunionSerializer, ReunionPresencialSerializer, ReunionVirtualSerializer
 from .tokens import create_jwt_pair_for_user
 
 # modulos nuevos que importo del framework DRF.
@@ -140,7 +140,7 @@ class PrestamoCreate(generics.CreateAPIView):
 
 # crear un metodo POST con un try except para el manejo de errores
     def post(self, request):
-        # crear un objeto de la clase AhorroSerializer, pasandole como parametro el request.data
+        # crear un objeto de la clase PrestamoSerializer, pasandole como parametro el request.data
         serializer = PrestamoSerializer(data=request.data)
     # si el serializer es valido
         if serializer.is_valid():
@@ -220,29 +220,28 @@ class deletePrestamo(generics.GenericAPIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class updatePrestamo(generics.UpdateAPIView):
-
     serializer_class = PrestamoSerializer
     model = Prestamo
     permission_classes = [permissions.AllowAny]
-    # queryset= Prestamo.objects.all()
 
     def getPrestamo(self, solicitudPrestamo):
         try:
             return Prestamo.objects.get(solicitudPrestamo=solicitudPrestamo)
         except Prestamo.DoesNotExist:
-            raise Http404("El Prestamo no existe")
+            raise NotFound(detail='Prestamo no existe')
 
-    def put(self, request: Response, solicitudPrestamo=''):
-        prestamo = self.getPrestamo(solicitudPrestamo)
-
-        serializer = self.serializer_class(
-            instance=prestamo, data=request.data)
+    def put(self, *args, **kwargs):
+        soliPrestamo = self.kwargs.get('solicitudPrestamo')
+        print(soliPrestamo)
+        prestamo = self.getPrestamo(soliPrestamo)
+        serializer = self.serializer_class(prestamo, data=self.request.data)
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 """SESION DEDICADA A AHORROS, Y TODO LO RELACIONADO CON ESTE"""
 
@@ -270,7 +269,7 @@ class AhorrosCreate(generics.CreateAPIView):
 class AhorrosList(generics.ListAPIView):
     serializer_class = AhorroSerializer
     model = Ahorro
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = Ahorro.objects.all()
 
 
@@ -342,7 +341,7 @@ class AhorrosDelete(generics.DestroyAPIView):
 class AbonoView(generics.GenericAPIView):
     serializer_class = AbonoSerializer
     model = Abono
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get_object(self, pk):
         try:
@@ -353,23 +352,28 @@ class AbonoView(generics.GenericAPIView):
     def post(self, request: Response):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+            serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
-    def get(self, documento):
+    def get(self, *args, **kwargs):
+        documento = self.kwargs.get('documento')
         queryset = self.model.objects.filter(abona=documento).all()
         serializer = self.serializer_class(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
 
-    def put(self, request: Response, pk):
+    def put(self, request: Request, *args, **kwargs):
+        pk = self.kwargs.get('pk')
         abono = self.get_object(pk)
         serializer = self.serializer_class(instance=abono, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
-    def delete(self, pk):
+    def delete(self, *args, **kwargs):
+        pk = self.kwargs.get('pk')
         abono = self.get_object(pk)
         if abono.delete():
             return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
@@ -381,11 +385,12 @@ class AbonoView(generics.GenericAPIView):
 class AbonoListAll(generics.ListAPIView):
     serializer_class = AbonoSerializer
     model = Abono
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = model.objects.all()
 
 
 """ SESIÓN DEDICADA SOLO A SANCIONES. """
+
 
 class SancionCreate(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -402,14 +407,18 @@ class SancionCreate(generics.CreateAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#una class de sancion list
+# una class de sancion list
+
+
 class SancionList(generics.ListAPIView):
     serializer_class = SancionSerializer
     model = Multa
     permission_classes = [permissions.IsAuthenticated]
     queryset = Multa.objects.all()
 
-#una class de sancion list de un user especifico con un filter.
+# una class de sancion list de un user especifico con un filter.
+
+
 class SancionListUser(generics.RetrieveAPIView):
     serializer_class = SancionSerializer
     model = Multa
@@ -421,7 +430,9 @@ class SancionListUser(generics.RetrieveAPIView):
         serializer = self.serializer_class(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
 
-#una class de sancion update
+# una class de sancion update
+
+
 class SancionUpdate(generics.UpdateAPIView):
     serializer_class = SancionSerializer
     model = Multa
@@ -443,7 +454,9 @@ class SancionUpdate(generics.UpdateAPIView):
         else:
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#una class de sancion delete
+# una class de sancion delete
+
+
 class SancionDelete(generics.DestroyAPIView):
     serializer_class = SancionSerializer
     model = Multa
@@ -466,4 +479,137 @@ class SancionDelete(generics.DestroyAPIView):
             }, status=status.HTTP_204_NO_CONTENT)
 
 
+################## Sección de reuniones ##################
 
+# Creación de reunión
+@ method_decorator(csrf_exempt, name='dispatch')
+class ReunionVirtualCreateView(generics.CreateAPIView):
+    serializer_class = ReunionVirtualSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request: Request, *args, **kwargs):
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            response = {
+                "message": "Reunion creada correctamente",
+                "data": serializer.data
+            }
+            return Response(data=response, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ReunionPresencialCreateView(generics.CreateAPIView):
+    serializer_class = ReunionPresencialSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request: Request, *args, **kwargs):
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            response = {
+                "message": "Reunion creada correctamente",
+                "data": serializer.data
+            }
+            return Response(data=response, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReunionPresencialListAll(generics.ListAPIView):
+    serializer_class = ReunionPresencialSerializer
+    model = ReunionPresencial
+    permission_classes = [permissions.AllowAny]
+    queryset = model.objects.all()
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReunionVirtualListAll(generics.ListAPIView):
+    serializer_class = ReunionVirtualSerializer
+    model = ReunionVirtual
+    permission_classes = [permissions.AllowAny]
+    queryset = model.objects.all()
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReunionPresencialUpdateView(generics.UpdateAPIView):
+    serializer_class = ReunionPresencialSerializer
+    model = ReunionPresencial
+    permission_classes = [permissions.AllowAny]
+
+    def get_object(self, id):
+        try:
+            return self.model.objects.get(pk=id)
+        except self.model.DoesNotExist:
+            raise Http404("La reunión no existe")
+
+    def put(self, request: Request, id):
+        reunionPresencial = self.get_object(id)
+        serializer = self.serializer_class(
+            instance=reunionPresencial, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReunionVirtualUpdateView(generics.UpdateAPIView):
+    serializer_class = ReunionVirtualSerializer
+    model = ReunionVirtual
+    permission_classes = [permissions.AllowAny]
+
+    def get_object(self, id):
+        try:
+            return self.model.objects.get(pk=id)
+        except self.model.DoesNotExist:
+            raise Http404("La reunión no existe")
+
+    def put(self, request: Request, id):
+        reunionPresencial = self.get_object(id)
+        serializer = self.serializer_class(
+            instance=reunionPresencial, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReunionPresencialDeleteView(generics.DestroyAPIView):
+    serializer_class = ReunionPresencialSerializer
+    model = ReunionPresencial
+    permission_classes = [permissions.AllowAny]
+
+    def get_object(self, id):
+        try:
+            return self.model.objects.get(pk=id)
+        except self.model.DoesNotExist:
+            raise Http404("La reunión no existe")
+
+    def delete(self, request: Request, id):
+        user = self.get_object(id)
+        if user.delete():
+            return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReunionVirtualDeleteView(generics.DestroyAPIView):
+    serializer_class = ReunionVirtualSerializer
+    model = ReunionVirtual
+    permission_classes = [permissions.AllowAny]
+
+    def get_object(self, id):
+        try:
+            return self.model.objects.get(pk=id)
+        except self.model.DoesNotExist:
+            raise Http404("La reunión no existe")
+
+    def delete(self, request: Request, id):
+        user = self.get_object(id)
+        if user.delete():
+            return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
+        return Response(status=status.HTTP_204_NO_CONTENT)
