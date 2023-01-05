@@ -112,13 +112,13 @@ class AbonoSerializer(serializers.ModelSerializer):
             return super().validate(attrs)
 
 
-class SancionSerializer(serializers.Serializer):
+class SancionSerializer(serializers.ModelSerializer):
 
     class Meta:
 
         model = Multa
-        fields = ["idAsociado", "motivo", "costo", "estadoMulta"]
-        #fields = "__all__"
+        #fields = ["asociadoReferente", "motivo", "costo", "estadoMulta"]
+        fields = "__all__"
 
     def create(self, validated_data):
         return Multa.objects.create(**validated_data)

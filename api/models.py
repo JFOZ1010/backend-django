@@ -81,11 +81,11 @@ class Multa(models.Model):
 
     idMulta = models.AutoField(primary_key=True)
     asociadoReferente = models.ForeignKey(
-        User, on_delete=models.CASCADE, to_field='documento', name="asociadoReferente")
-    motivo = models.CharField(max_length=200)
+        User, on_delete=models.CASCADE, to_field='documento', related_name="asociadoReferente", null=False)
+    motivo = models.CharField(max_length=200, null=False)
     fecha = models.DateField(auto_now_add=True)
-    costo = models.IntegerField()
-    estadoMulta = models.BooleanField()
+    costo = models.IntegerField(null=False)
+    estadoMulta = models.BooleanField(null=False)
 
     def __str__(self):
         return self.idMulta
