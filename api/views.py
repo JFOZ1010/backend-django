@@ -11,8 +11,8 @@ from django.http import JsonResponse
 from django.http import Http404
 
 # Modulos locales
-from api.models import Abono, User, Ahorro, Prestamo, Multa, Reunion, ReunionVirtual, ReunionPresencial
-from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer, AbonoSerializer, SancionSerializer, ReunionSerializer, ReunionPresencialSerializer, ReunionVirtualSerializer
+from api.models import Abono, User, Ahorro, Prestamo, Multa, Reunion, ReunionVirtual, ReunionPresencial, Cliente
+from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer, AbonoSerializer, SancionSerializer, ReunionSerializer, ReunionPresencialSerializer, ReunionVirtualSerializer, ClienteSerializer
 from .tokens import create_jwt_pair_for_user
 
 # modulos nuevos que importo del framework DRF.
@@ -25,12 +25,12 @@ from rest_framework import authentication, permissions
 from rest_framework.exceptions import NotFound
 
 
-# Create your views here.
+# View de User.
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
-    permission_classes = []
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request: Request):
         data = request.data
@@ -60,7 +60,7 @@ class UserView(generics.GenericAPIView):
     def get(self, *args, **kwargs):
         documento = self.kwargs.get("documento")
         user = self.get_object(documento)
-        serializer = UserSerializer(user, many=False)
+        serializer = self.serializer_class(user, many=False)
         return Response(data=serializer.data)
 
     def delete(self, *args, **kwargs):
@@ -72,7 +72,7 @@ class UserView(generics.GenericAPIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class UserListAll(generics.ListAPIView):
+class ListUserAllView(generics.ListAPIView):
     serializer_class = UserSerializer
     model = User
     permission_classes = [permissions.IsAuthenticated]
@@ -80,9 +80,86 @@ class UserListAll(generics.ListAPIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class UserUpdate(generics.UpdateAPIView):
+class UpdateClienteView(generics.UpdateAPIView):
     serializer_class = UserSerializer
     model = User
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, pk):
+        try:
+            return self.model.objects.get(documento=pk)
+        except self.model.DoesNotExist:
+            raise Http404("El usuario no existe")
+
+    def put(self, request: Response, pk):
+        user = self.get_object(pk)
+        serializer = self.serializer_class(instance=user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# View de Cliente
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CreateClienteView(generics.CreateAPIView):
+    serializer_class = ClienteSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request: Request):
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            response = {
+                "message": "Cliente creado correctamente",
+                "data": serializer.data
+            }
+            return Response(response)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ClienteView(generics.GenericAPIView):
+    serializer_class = ClienteSerializer
+    model = Cliente
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, documento):
+        try:
+            return self.model.objects.get(documento=documento)
+        except self.model.DoesNotExist:
+            raise Http404("El cliente no existe")
+
+    def get(self, *args, **kwargs):
+        documento = self.kwargs.get("documento")
+        cliente = self.get_object(documento)
+        serializer = self.serializer_class(cliente, many=False)
+        return Response(data=serializer.data)
+
+    def delete(self, *args, **kwargs):
+        documento = self.kwargs.get("documento")
+        cliente = self.get_object(documento)
+        if cliente.delete():
+            return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ListClientetAllView(generics.ListAPIView):
+    serializer_class = ClienteSerializer
+    model = Cliente
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = model.objects.all()
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UpdateClienteView(generics.UpdateAPIView):
+    serializer_class = ClienteSerializer
+    model = Cliente
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, pk):

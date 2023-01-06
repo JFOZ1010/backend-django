@@ -55,11 +55,23 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ["rol", "password", "documento"]
 
     class Meta:
-        verbose_name = 'user'
-        verbose_name_plural = 'users'
+        verbose_name = 'usuario'
+        verbose_name_plural = 'usuarios'
 
     def __str__(self):
-        return self.email
+        return self.documento
+
+
+class Cliente(User):
+    asociadoVinculado = models.OneToOneField(
+        User, name='asociadoVinculado', on_delete=models.CASCADE, related_name='cliente_asociadoVinculado', to_field="documento")
+
+    class Meta:
+        verbose_name = 'cliente'
+        verbose_name_plural = 'clientes'
+
+    def __str__(self):
+        return self.documento
 
 
 class Ahorro(models.Model):

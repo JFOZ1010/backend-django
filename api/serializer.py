@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.validators import ValidationError
 from django.utils.translation import gettext as _
-from api.models import Ahorro, Prestamo, User, Abono, Multa, Reunion, ReunionPresencial, ReunionVirtual
+from api.models import Ahorro, Prestamo, User, Abono, Multa, Reunion, ReunionPresencial, ReunionVirtual, Cliente, Rol
 from django.contrib.auth.hashers import make_password
 from django.db import models
 
@@ -14,29 +14,136 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "password",
-                  "rol", "first_name", "last_name", "is_active", "fechaNacimiento", "documento", "ciudad", "direccion", "ocupacion", "telefono"]
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "rol",
+            "first_name",
+            "last_name",
+            "is_active",
+            "fechaNacimiento",
+            "documento",
+            "ciudad",
+            "direccion",
+            "ocupacion",
+            "telefono"
+        ]
         constraints = [
             models.UniqueConstraint(fields=['email'], condition=models.Q(
                 is_deleted=False), name='unique_undeleted_name')
         ]
 
     def validate(self, attrs):
-        email_exists = User.objects.filter(email=attrs["email"]).exists()
-        doc_exists = User.objects.filter(id=attrs["documento"]).exists()
-        if email_exists and doc_exists:
-            raise ValidationError(
-                'Ya hay un usuario con su correo y documento')
-        attrs['password'] = make_password(attrs['password'])
+
+        user_exist = self.Meta.model.objects.filter(
+            documento=attrs['documento']).exists()
+        if user_exist:
+            my_user = self.Meta.model.objects.get(documento=attrs['documento'])
+            if not attrs['password'] == my_user.password:
+                attrs['password'] = make_password(attrs['password'])
+        else:
+            attrs['password'] = make_password(attrs['password'])
+
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
-        email = validated_data.get('email', '')
 
-        if User.objects.exclude(pk=instance.pk).filter(email=email):
-            raise serializers.ValidationError(
-                'User with this email already exists.')
-        return super().update(instance, validated_data)
+        instance.username = validated_data.get('username', instance.username)
+        instance.email = validated_data.get('email', instance.email)
+        instance.password = validated_data.get('password', instance.password)
+        instance.rol = validated_data.get('rol', instance.rol)
+        instance.first_name = validated_data.get(
+            'first_name', instance.first_name)
+        instance.last_name = validated_data.get(
+            'last_name', instance.last_name)
+        instance.is_active = validated_data.get(
+            'is_active', instance.is_active)
+        instance.fechaNacimiento = validated_data.get(
+            'fechaNacimiento', instance.fechaNacimiento)
+        instance.documento = validated_data.get(
+            'documento', instance.documento)
+        instance.ciudad = validated_data.get('ciudad', instance.ciudad)
+        instance.direccion = validated_data.get(
+            'direccion', instance.direccion)
+        instance.ocupacion = validated_data.get(
+            'ocupacion', instance.ocupacion)
+        instance.telefono = validated_data.get('telefono', instance.telefono)
+        instance.save()
+
+        return instance
+
+
+class ClienteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Cliente
+        fields = [
+            "id",
+            "email",
+            "password",
+            "rol",
+            "asociadoVinculado",
+            "first_name",
+            "last_name",
+            "is_active",
+            "documento",
+            "telefono"
+        ]
+
+    def validate(self, attrs):
+
+        # Validación como usuario
+        user_exist = User.objects.filter(
+            documento=attrs['documento']).exists()
+        if user_exist:
+            my_user = User.objects.get(documento=attrs['documento'])
+            if not attrs['password'] == my_user.password:
+                attrs['password'] = make_password(attrs['password'])
+        else:
+            attrs['password'] = make_password(attrs['password'])
+
+        # Validación como cliente
+        user_asociado_exist = User.objects.filter(
+            documento=attrs['asociadoVinculado']).exists
+
+        if not user_asociado_exist:
+            raise ValidationError(
+                'El asociado no existe'
+            )
+        if not User.objects.get(documento=attrs['asociadoVinculado']).rol == Rol.ASOCIADO:
+            raise ValidationError(
+                'No es asociado'
+            )
+        if not attrs['rol'] == Rol.CLIENTE:
+            raise ValidationError(
+                'No se está registrando como Cliente'
+            )
+
+        return super().validate(attrs)
+
+    def update(self, instance, validated_data):
+
+        instance.asociadoVinculado = validated_data.get(
+            'asociadoVinculado', instance.asociadoVinculado)
+        instance.email = validated_data.get('email', instance.email)
+        instance.password = validated_data.get('password', instance.password)
+        instance.rol = validated_data.get('rol', instance.rol)
+        instance.first_name = validated_data.get(
+            'first_name', instance.first_name)
+        instance.last_name = validated_data.get(
+            'last_name', instance.last_name)
+        instance.is_active = validated_data.get(
+            'is_active', instance.is_active)
+        instance.fechaNacimiento = validated_data.get(
+            'fechaNacimiento', instance.fechaNacimiento)
+        instance.documento = validated_data.get(
+            'documento', instance.documento)
+        instance.telefono = validated_data.get('telefono', instance.telefono)
+        instance.save()
+
+        return instance
 
 
 # Serializacion para prestamos
@@ -56,7 +163,7 @@ solicitudPrestamo = serializers.CharField()
     class Meta:
         model = Prestamo
         fields = ["solicitudPrestamo", "codeudor", "deudor", "monto",
-                  "fecha", "estadoPrestamo", "interes","comision"]
+                  "fecha", "estadoPrestamo", "interes", "comision"]
 
     def create(self, validated_data):
         return Prestamo.objects.create(**validated_data)
