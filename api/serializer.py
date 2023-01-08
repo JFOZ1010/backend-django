@@ -176,7 +176,7 @@ class AhorroSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ahorro
         fields = ["idAhorro", "DocAsociado", "fecha", "monto",
-                  "descripcion", "firmaDigital", "tipoConsignacion"]
+                  "descripcion", "firmaDigital", "tipoConsignacion", "autorizado"]
 
     def create(self, validated_data):
         return Ahorro.objects.create(**validated_data)

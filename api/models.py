@@ -81,6 +81,7 @@ class Ahorro(models.Model):
         User, on_delete=models.CASCADE, to_field="documento")
     fecha = models.DateField(auto_now_add=True, null=False)
     descripcion = models.CharField(max_length=200, null=True)
+    autorizado = models.BooleanField(null=True)
     monto = models.IntegerField(null=False)
     firmaDigital = models.CharField(max_length=200)
     tipoConsignacion = models.CharField(max_length=200)
