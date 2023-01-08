@@ -218,6 +218,9 @@ class Abono(models.Model):
         User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
     cuentaAhorro = models.ForeignKey(
         Ahorro, name="cuentaAhorro", null=False, to_field="idAhorro", on_delete=models.CASCADE)
+    idSancion = models.ForeignKey(
+        Multa, on_delete=models.CASCADE, name='idSancion', to_field='idMulta'
+    )
     monto = models.IntegerField(null=False)
     fecha = models.DateField(auto_now_add=True, null=False)
     descripcion = models.CharField(max_length=200, blank=True)

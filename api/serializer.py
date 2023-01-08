@@ -188,8 +188,7 @@ class AbonoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Abono
-        fields = ["idAbono", "idPrestamo", "cuentaAhorro", "abona",
-                  "monto", "fecha", "descripcion"]
+        fields = '__all__'
 
         def validate(self, attrs):
             abona_exist = User.objects.filter(
