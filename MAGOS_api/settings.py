@@ -19,8 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = 'django-insecure-=%=e++q4!e05n@x&e1&4*$@n&d&z1ul$-7u5i6l&+i!4quy6oh'
-SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
+# dejo la secret key así porque está pudiendo leerse desde las variables de entorno, porque al momento de pasarla
+# directamente como en la linea 26, surgen bugs (I don't Know men)
+SECRET_KEY = os.environ.get('SECRET_KEY', default='secret-key')
+# SECRET_KEY = 'django-insecure-=%=e++q4!e05n@x&e1&4*$@n&d&z1ul$-7u5i6l&+i!4quy6oh'
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -134,7 +136,22 @@ WSGI_APPLICATION = 'MAGOS_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# Creando una base de datos local para pruebas
+# Con variables de entorno, por seguridad estaba intentando hacerlo de esta forma pero
+# no me funcionaba, por eso lo dejo comentado y pongo los datos de la base de datos, 
+# pero en producción se debe hacer de esta forma. (deployment)
+"""
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_DATABASE_PORT'),
+    }
+}
+"""
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
