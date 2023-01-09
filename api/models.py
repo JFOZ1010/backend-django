@@ -99,6 +99,7 @@ class Multa(models.Model):
     fecha = models.DateField(auto_now_add=True)
     costo = models.IntegerField(null=False)
     estadoMulta = models.BooleanField(null=False)
+    montoPagado = models.IntegerField(null=True)
 
     def __str__(self):
         return self.idMulta
