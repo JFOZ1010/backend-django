@@ -190,32 +190,54 @@ class AbonoSerializer(serializers.ModelSerializer):
         model = Abono
         fields = '__all__'
 
-        def validate(self, attrs):
-            abona_exist = User.objects.filter(
-                documento=attrs["abona"]).exists()
-            prestamos_exist = Prestamo.objects.filter(
-                idPrestamo=attrs["prestamo"]).exists()
-            ahorro_exist = Ahorro.objects.filter(
-                idAhorro=attrs["cuentaAhorro"]).exists()
-            monto_nat = attrs["monto"] <= 0
-
-            if abona_exist:
-                raise ValidationError(
-                    "El abonador no existe"
-                )
-            if prestamos_exist:
-                raise ValidationError(
-                    "El prestamo no existe"
-                )
-            if ahorro_exist:
-                raise ValidationError(
-                    "No existe la cuenta de ahorro"
-                )
-            if monto_nat:
-                raise ValidationError(
-                    "Ingrese un monto válido"
-                )
-            return super().validate(attrs)
+    # def validate(self, attrs):
+    ##    monto_nat = attrs["monto"] <= 0
+    # print(attrs["cuentaAhorro"])
+    # if (attrs["cuentaPrestamo"]):
+    # raise ValidationError(
+    ##            "Hay prestamo"
+    # )
+    # if (attrs["cuentaAhorro"] and attrs["cuentaSancion"]):
+    # raise ValidationError(
+    ##            "Debe abonar solo a una cuenta"
+    # )
+    # if (attrs["cuentaPrestamo"] and attrs["cuentaSancion"]):
+    # raise ValidationError(
+    ##            "Debe abonar solo a una cuenta"
+    # )
+    # abona_exist = User.objects.filter(
+    # documento=attrs["abona"]
+    # ).exists()
+    # prestamos_exist = Prestamo.objects.filter(
+    # solicitudPrestamo=attrs["cuentaPrestamo"]
+    # ).exists()
+    # ahorro_exist = Ahorro.objects.filter(
+    # idAhorro=attrs["cuentaAhorro"]
+    # ).exists()
+    # multa_exist = Multa.objects.filter(
+    # idMulta=attrs["cuentaSancion"]
+    # ).exists()
+    # if abona_exist:
+    # raise ValidationError(
+    ##            "El abonador no existe"
+    # )
+    # if prestamos_exist:
+    # raise ValidationError(
+    ##            "El prestamo no existe"
+    # )
+    # if ahorro_exist:
+    # raise ValidationError(
+    ##            "No existe la cuenta de ahorro"
+    # )
+    # if multa_exist:
+    # raise ValidationError(
+    ##            "No existe la cuenta de sancion"
+    # )
+    # if monto_nat:
+    # raise ValidationError(
+    ##            "Ingrese un monto válido"
+    # )
+    # return super().validate(attrs)
 
 
 class SancionSerializer(serializers.ModelSerializer):
