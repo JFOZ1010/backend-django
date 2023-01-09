@@ -99,6 +99,7 @@ class Multa(models.Model):
     fecha = models.DateField(auto_now_add=True)
     costo = models.IntegerField(null=False)
     estadoMulta = models.BooleanField(null=False)
+    montoPagado = models.IntegerField(null=True)
 
     def __str__(self):
         return self.idMulta
@@ -213,14 +214,10 @@ class EstadoCuenta(models.Model):
 
 class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
-    cuentaPrestamo = models.ForeignKey(
-        Prestamo, on_delete=models.CASCADE, null=True, to_field="solicitudPrestamo", name="cuentaPrestamo")
-    abona = models.ForeignKey(
-        User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
-    cuentaAhorro = models.ForeignKey(
-        Ahorro, name="cuentaAhorro", null=True, to_field="idAhorro", on_delete=models.CASCADE)
-    cuentaSancion = models.ForeignKey(
-        Multa, on_delete=models.CASCADE, name='cuentaSancion', to_field='idMulta', null=True)
+    cuentaPrestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE, null=True, to_field="solicitudPrestamo", name="cuentaPrestamo")
+    abona = models.ForeignKey(User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
+    cuentaAhorro = models.ForeignKey(Ahorro, name="cuentaAhorro", null=False, to_field="idAhorro", on_delete=models.CASCADE)
+    cuentaSancion = models.ForeignKey(Multa, on_delete=models.CASCADE, name='cuentaSancion', to_field='idMulta', null=True)
     monto = models.IntegerField(null=False)
     fecha = models.DateField(auto_now_add=True, null=False)
     descripcion = models.CharField(max_length=200, blank=True)
