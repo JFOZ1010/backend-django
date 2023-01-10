@@ -146,7 +146,7 @@ class Prestamo(models.Model):
     estadoPrestamo = models.BooleanField(default=False)
     interes = models.FloatField()
     comision = models.IntegerField()
-    pagoDeuda = models.IntegerField(null=False)
+    pagoDeuda = models.IntegerField(null=True)
 
     def checkErrors(self):
         return self.montoValido() == []
