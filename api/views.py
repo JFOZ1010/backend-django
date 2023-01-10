@@ -180,18 +180,62 @@ class PrestamoId(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
     queryset = Prestamo.objects.all()
 
-    def getPrestamo(self, solicitudPrestamo):
+    def getPrestamo(self, idPrestamo):
         try:
-            return Prestamo.objects.get(solicitudPrestamo=solicitudPrestamo)
+            return Prestamo.objects.get(idPrestamo=idPrestamo)
         except Prestamo.DoesNotExist:
             raise Http404("El Prestamo no existe")
 
-    def get(self, request: Response, solicitudPrestamo=''):
+    def get(self, request: Response, idPrestamo=''):
 
-        prestamo = self.getPrestamo(solicitudPrestamo)
+        prestamo = self.getPrestamo(idPrestamo)
         serializer = PrestamoSerializer(prestamo, many=False)
         return Response(data=serializer.data)
 
+# Busqueda del prestamo por documentos
+#Codeudor
+@method_decorator(csrf_exempt, name='dispatch')
+class IdCodeudor(generics.GenericAPIView):
+
+    serializer_class = PrestamoSerializer
+    model = Prestamo
+    permission_classes = [permissions.AllowAny]
+    queryset = Prestamo.objects.all()
+
+    def getPrestamo(self, codeudor):
+        try:
+            return Prestamo.objects.get(codeudor=codeudor)
+        except Prestamo.DoesNotExist:
+            raise Http404("El Prestamo no existe")
+
+    def get(self, request: Response, codeudor=''):
+
+        prestamo = self.getPrestamo(codeudor)
+        serializer = PrestamoSerializer(prestamo, many=False)
+        return Response(data=serializer.data)
+
+# Busqueda del prestamo por documentos
+#Deudor
+
+@method_decorator(csrf_exempt, name='dispatch')
+class IdDeudor(generics.GenericAPIView):
+
+    serializer_class = PrestamoSerializer
+    model = Prestamo
+    permission_classes = [permissions.AllowAny]
+    queryset = Prestamo.objects.all()
+
+    def getPrestamo(self, deudor):
+        try:
+            return Prestamo.objects.get(deudor=deudor)
+        except Prestamo.DoesNotExist:
+            raise Http404("El Prestamo no existe")
+
+    def get(self, request: Response, deudor=''):
+
+        prestamo = self.getPrestamo(deudor)
+        serializer = PrestamoSerializer(prestamo, many=False)
+        return Response(data=serializer.data)
 
 # Delete Prestamo
 
@@ -202,14 +246,14 @@ class deletePrestamo(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
     queryset = Prestamo.objects.all()
 
-    def getPrestamo(self, solicitudPrestamo):
+    def getPrestamo(self, idPrestamo):
         try:
-            return Prestamo.objects.get(solicitudPrestamo=solicitudPrestamo)
+            return Prestamo.objects.get(idPrestamo=idPrestamo)
         except Prestamo.DoesNotExist:
             raise Http404("El Prestamo no existe")
 
-    def delete(self, request, solicitudPrestamo='', format=None):
-        prestamo = self.getPrestamo(solicitudPrestamo)
+    def delete(self, request, idPrestamo='', format=None):
+        prestamo = self.getPrestamo(idPrestamo)
 
         if prestamo.delete():
             return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
@@ -224,14 +268,14 @@ class updatePrestamo(generics.UpdateAPIView):
     model= Prestamo
     permission_classes = [permissions.AllowAny]
 
-    def getPrestamo(self, solicitudPrestamo):
+    def getPrestamo(self, idPrestamo):
         try:
-            return Prestamo.objects.get(solicitudPrestamo=solicitudPrestamo)
+            return Prestamo.objects.get(idPrestamo=idPrestamo)
         except Prestamo.DoesNotExist:
             raise NotFound(detail='Prestamo no existe')
     
     def put(self, *args, **kwargs):
-        soliPrestamo=self.kwargs.get('solicitudPrestamo')
+        soliPrestamo=self.kwargs.get('idPrestamo')
         print(soliPrestamo)
         prestamo = self.getPrestamo(soliPrestamo)
         serializer = self.serializer_class(prestamo, data=self.request.data)

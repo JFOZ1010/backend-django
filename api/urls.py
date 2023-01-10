@@ -32,6 +32,13 @@ urlpatterns = [
     path('prestamos/', views.PrestamoList.as_view(), name='prestamos_list'),
     path('prestamos/<str:solicitudPrestamo>',
          views.PrestamoId.as_view(), name='prestamos_id'),
+     #Url codeudor
+    path('prestamos/<str:codeudor>',
+         views.IdCodeudor.as_view(), name='codeudor_id'),
+    #Url deudor
+    path('prestamos/<str:deudor>',
+         views.IdDeudor.as_view(), name='deudor_id'),
+     #delete
     path('prestamos/delete/<str:solicitudPrestamo>',
          views.deletePrestamo.as_view(), name='prestamos_delete'),
     path('prestamos/update/<str:solicitudPrestamo>',

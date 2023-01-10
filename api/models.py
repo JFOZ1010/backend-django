@@ -3,6 +3,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.hashers import make_password
 from django.utils.timezone import now
+from datetime import date
 
 
 class Rol(models.TextChoices):
@@ -133,18 +134,19 @@ class ReunionVirtual(Reunion):
 
 
 class Prestamo(models.Model):
-    solicitudPrestamo = models.CharField(primary_key=True, max_length=30)
+    idPrestamo = models.AutoField(primary_key=True)
     # codeudor es una llave foranea de asociado
     codeudor = models.ForeignKey(
-        User, name='codeudor', null=False, on_delete=models.CASCADE, related_name='prestamoCodeudor')
+        User, name='codeudor', null=False, on_delete=models.CASCADE, to_field="documento")
     # deudor es una llave foranea de cliente
     deudor = models.ForeignKey(
-        User, name='deudor', null=False, on_delete=models.CASCADE, related_name='prestamoDeudor')
+        User, name='deudor', null=False, on_delete=models.CASCADE,related_name='deudor')
     monto = models.IntegerField()
-    fecha = models.DateField(default=now().date(), null=False)
+    fecha =  models.DateField(auto_now_add=True, null=False)
     estadoPrestamo = models.BooleanField(default=False)
     interes = models.FloatField()
     comision = models.IntegerField()
+    pagoDeuda = models.IntegerField(null=False)
 
     def checkErrors(self):
         return self.montoValido() == []
@@ -158,7 +160,7 @@ class Prestamo(models.Model):
             return errors.append("Monto no valido")
 
     def __str__(self):
-        return self.solicitudPrestamo + " a: " + self.deudor  # Cambiara por deudor luego
+        return self.idPrestamo + " a: " + self.deudor  # Cambiara por deudor luego
 
     class Meta:
         verbose_name = 'prestamo'
