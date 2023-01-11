@@ -493,9 +493,7 @@ class SancionList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     queryset = Multa.objects.all()
 
-# una class de sancion list de un user especifico con un filter.
-
-
+# una class de sancion list de un user especifico con un filter (asociado Referente)
 class SancionListUser(generics.RetrieveAPIView):
     serializer_class = SancionSerializer
     model = Multa
@@ -503,13 +501,11 @@ class SancionListUser(generics.RetrieveAPIView):
 
     def get(self, *args, **kwargs):
         documento = self.kwargs.get('documento')
-        queryset = Multa.objects.filter(DocAsociado=documento).all()
+        queryset = Multa.objects.filter(asociadoReferente=documento).all()
         serializer = self.serializer_class(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
 
 # una class de sancion update
-
-
 class SancionUpdate(generics.UpdateAPIView):
     serializer_class = SancionSerializer
     model = Multa
@@ -532,8 +528,6 @@ class SancionUpdate(generics.UpdateAPIView):
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # una class de sancion delete
-
-
 class SancionDelete(generics.DestroyAPIView):
     serializer_class = SancionSerializer
     model = Multa
