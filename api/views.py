@@ -210,6 +210,8 @@ class LoginView(APIView):
         return Response(data=content, status=status.HTTP_200_OK)
 
 # View prestamos:
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class PrestamoCreate(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
@@ -258,18 +260,20 @@ class PrestamoId(generics.GenericAPIView):
 
     def getPrestamo(self, idPrestamo):
         try:
-            return Prestamo.objects.get(idPrestamo=idPrestamo)
+            return Prestamo.objects.get(id=idPrestamo)
         except Prestamo.DoesNotExist:
             raise Http404("El Prestamo no existe")
 
-    def get(self, request: Response, idPrestamo=''):
+    def get(self, request: Response, idPrestamo=0):
 
         prestamo = self.getPrestamo(idPrestamo)
         serializer = PrestamoSerializer(prestamo, many=False)
         return Response(data=serializer.data)
 
 # Busqueda del prestamo por documentos
-#Codeudor
+# Codeudor
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class IdCodeudor(generics.GenericAPIView):
 
@@ -291,7 +295,8 @@ class IdCodeudor(generics.GenericAPIView):
         return Response(data=serializer.data)
 
 # Busqueda del prestamo por documentos
-#Deudor
+# Deudor
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class IdDeudor(generics.GenericAPIView):
@@ -315,6 +320,7 @@ class IdDeudor(generics.GenericAPIView):
 
 # Delete Prestamo
 
+
 class deletePrestamo(generics.GenericAPIView):
 
     serializer_class = PrestamoSerializer
@@ -324,11 +330,11 @@ class deletePrestamo(generics.GenericAPIView):
 
     def getPrestamo(self, idPrestamo):
         try:
-            return Prestamo.objects.get(idPrestamo=idPrestamo)
+            return Prestamo.objects.get(id=idPrestamo)
         except Prestamo.DoesNotExist:
             raise Http404("El Prestamo no existe")
 
-    def delete(self, request, idPrestamo='', format=None):
+    def delete(self, request, idPrestamo=0, format=None):
         prestamo = self.getPrestamo(idPrestamo)
 
         if prestamo.delete():
@@ -341,21 +347,21 @@ class deletePrestamo(generics.GenericAPIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class updatePrestamo(generics.UpdateAPIView):
     serializer_class = PrestamoSerializer
-    model= Prestamo
+    model = Prestamo
     permission_classes = [permissions.AllowAny]
 
     def getPrestamo(self, idPrestamo):
         try:
-            return Prestamo.objects.get(idPrestamo=idPrestamo)
+            return Prestamo.objects.get(id=idPrestamo)
         except Prestamo.DoesNotExist:
             raise NotFound(detail='Prestamo no existe')
-    
+
     def put(self, *args, **kwargs):
-        soliPrestamo=self.kwargs.get('idPrestamo')
+        soliPrestamo = self.kwargs.get('idPrestamo')
         print(soliPrestamo)
         prestamo = self.getPrestamo(soliPrestamo)
         serializer = self.serializer_class(prestamo, data=self.request.data)
-        
+
         if serializer.is_valid():
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
@@ -537,6 +543,8 @@ class SancionList(generics.ListAPIView):
     queryset = Multa.objects.all()
 
 # una class de sancion list de un user especifico con un filter (asociado Referente)
+
+
 class SancionListUser(generics.RetrieveAPIView):
     serializer_class = SancionSerializer
     model = Multa
@@ -549,6 +557,8 @@ class SancionListUser(generics.RetrieveAPIView):
         return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
 
 # una class de sancion update
+
+
 class SancionUpdate(generics.UpdateAPIView):
     serializer_class = SancionSerializer
     model = Multa
@@ -571,6 +581,8 @@ class SancionUpdate(generics.UpdateAPIView):
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # una class de sancion delete
+
+
 class SancionDelete(generics.DestroyAPIView):
     serializer_class = SancionSerializer
     model = Multa

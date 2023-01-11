@@ -157,16 +157,15 @@ class ReunionVirtual(Reunion):
 
 
 class Prestamo(models.Model):
-    #idPrestamo = models.AutoField(primary_key=True)
-    idPrestamo=models.CharField(primary_key=True, max_length=30)
+    id = models.AutoField(primary_key=True)
     # codeudor es una llave foranea de asociado
     codeudor = models.ForeignKey(
         User, name='codeudor', null=False, on_delete=models.CASCADE, to_field="documento")
     # deudor es una llave foranea de cliente
     deudor = models.ForeignKey(
-        User, name='deudor', null=False, on_delete=models.CASCADE,related_name='documentos')
+        User, name='deudor', null=False, on_delete=models.CASCADE, related_name='documentos')
     monto = models.IntegerField()
-    fecha =  models.DateField(auto_now_add=True, null=False)
+    fecha = models.DateField(auto_now_add=True, null=False)
     estadoPrestamo = models.BooleanField(default=False)
     interes = models.FloatField()
     comision = models.IntegerField()
@@ -218,12 +217,13 @@ class EstadoCuenta(models.Model):
 
 class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
-    cuentaPrestamo = models.ForeignKey(
-        Prestamo, on_delete=models.CASCADE, null=True, to_field="idPrestamo", name="cuentaPrestamo")
     abona = models.ForeignKey(
         User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
     cuentaAhorro = models.ForeignKey(
         Ahorro, name="cuentaAhorro", null=False, to_field="idAhorro", on_delete=models.CASCADE)
+    cuentaPrestamo = models.ForeignKey(
+        Prestamo, on_delete=models.CASCADE, to_field='id', null=True
+    )
     cuentaSancion = models.ForeignKey(
         Multa, on_delete=models.CASCADE, name='cuentaSancion', to_field='idMulta', null=True)
     monto = models.IntegerField(null=False)
