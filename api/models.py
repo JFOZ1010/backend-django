@@ -55,11 +55,23 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ["rol", "password", "documento"]
 
     class Meta:
-        verbose_name = 'user'
-        verbose_name_plural = 'users'
+        verbose_name = 'usuario'
+        verbose_name_plural = 'usuarios'
 
     def __str__(self):
-        return self.email
+        return self.documento
+
+
+class Cliente(User):
+    asociadoVinculado = models.OneToOneField(
+        User, name='asociadoVinculado', on_delete=models.CASCADE, related_name='cliente_asociadoVinculado', to_field="documento")
+
+    class Meta:
+        verbose_name = 'cliente'
+        verbose_name_plural = 'clientes'
+
+    def __str__(self):
+        return self.documento
 
 
 class Ahorro(models.Model):
@@ -69,6 +81,7 @@ class Ahorro(models.Model):
         User, on_delete=models.CASCADE, to_field="documento")
     fecha = models.DateField(auto_now_add=True, null=False)
     descripcion = models.CharField(max_length=200, null=True)
+    autorizado = models.BooleanField(null=True)
     monto = models.IntegerField(null=False)
     firmaDigital = models.CharField(max_length=200)
     tipoConsignacion = models.CharField(max_length=200)
@@ -81,11 +94,12 @@ class Multa(models.Model):
 
     idMulta = models.AutoField(primary_key=True)
     asociadoReferente = models.ForeignKey(
-        User, on_delete=models.CASCADE, to_field='documento', name="asociadoReferente")
-    motivo = models.CharField(max_length=200)
+        User, on_delete=models.CASCADE, to_field='documento', related_name="asociadoReferente", null=False)
+    motivo = models.CharField(max_length=200, null=False)
     fecha = models.DateField(auto_now_add=True)
-    costo = models.IntegerField()
-    estadoMulta = models.BooleanField()
+    costo = models.IntegerField(null=False)
+    estadoMulta = models.BooleanField(null=False)
+    montoPagado = models.IntegerField(null=True)
 
     def __str__(self):
         return self.idMulta
@@ -200,11 +214,14 @@ class EstadoCuenta(models.Model):
 
 class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
-    idPrestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE)
-    abona = models.OneToOneField(
+    cuentaPrestamo = models.ForeignKey(
+        Prestamo, on_delete=models.CASCADE, null=True, to_field="solicitudPrestamo", name="cuentaPrestamo")
+    abona = models.ForeignKey(
         User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
-    cuentaAhorro = models.OneToOneField(
+    cuentaAhorro = models.ForeignKey(
         Ahorro, name="cuentaAhorro", null=False, to_field="idAhorro", on_delete=models.CASCADE)
+    cuentaSancion = models.ForeignKey(
+        Multa, on_delete=models.CASCADE, name='cuentaSancion', to_field='idMulta', null=True)
     monto = models.IntegerField(null=False)
     fecha = models.DateField(auto_now_add=True, null=False)
     descripcion = models.CharField(max_length=200, blank=True)
