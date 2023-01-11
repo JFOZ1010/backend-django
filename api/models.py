@@ -157,18 +157,20 @@ class ReunionVirtual(Reunion):
 
 
 class Prestamo(models.Model):
-    solicitudPrestamo = models.CharField(primary_key=True, max_length=30)
+    #idPrestamo = models.AutoField(primary_key=True)
+    idPrestamo=models.CharField(primary_key=True, max_length=30)
     # codeudor es una llave foranea de asociado
     codeudor = models.ForeignKey(
-        User, name='codeudor', null=False, on_delete=models.CASCADE, related_name='prestamoCodeudor')
+        User, name='codeudor', null=False, on_delete=models.CASCADE, to_field="documento")
     # deudor es una llave foranea de cliente
     deudor = models.ForeignKey(
-        User, name='deudor', null=False, on_delete=models.CASCADE, related_name='prestamoDeudor')
+        User, name='deudor', null=False, on_delete=models.CASCADE,related_name='documentos')
     monto = models.IntegerField()
-    fecha = models.DateField(default=now().date(), null=False)
+    fecha =  models.DateField(auto_now_add=True, null=False)
     estadoPrestamo = models.BooleanField(default=False)
     interes = models.FloatField()
     comision = models.IntegerField()
+    pagoDeuda = models.IntegerField(null=True)
 
     def checkErrors(self):
         return self.montoValido() == []
@@ -182,11 +184,13 @@ class Prestamo(models.Model):
             return errors.append("Monto no valido")
 
     def __str__(self):
-        return self.solicitudPrestamo + " a: " + self.deudor  # Cambiara por deudor luego
+        return self.idPrestamo + " a: " + self.deudor  # Cambiara por deudor luego
 
     class Meta:
         verbose_name = 'prestamo'
         verbose_name_plural = 'prestamos'
+
+####
 
 
 ####
@@ -215,7 +219,7 @@ class EstadoCuenta(models.Model):
 class Abono(models.Model):
     idAbono = models.AutoField(primary_key=True)
     cuentaPrestamo = models.ForeignKey(
-        Prestamo, on_delete=models.CASCADE, null=True, to_field="solicitudPrestamo", name="cuentaPrestamo")
+        Prestamo, on_delete=models.CASCADE, null=True, to_field="idPrestamo", name="cuentaPrestamo")
     abona = models.ForeignKey(
         User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
     cuentaAhorro = models.ForeignKey(
