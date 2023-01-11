@@ -40,14 +40,24 @@ urlpatterns = [
          views.AhorrosUpdate.as_view(), name='ahorros_update'),
 
     ##################################### URL's PRESTAMOS. ######################################
+#Urls##################
+
+    ##################################### URL's PRESTAMOS. ######################################
     path('prestamos/create', views.PrestamoCreate.as_view(),
          name='prestamos_create'),
     path('prestamos/', views.PrestamoList.as_view(), name='prestamos_list'),
-    path('prestamos/<str:solicitudPrestamo>',
+    path('prestamos/<str:idPrestamo>',
          views.PrestamoId.as_view(), name='prestamos_id'),
-    path('prestamos/delete/<str:solicitudPrestamo>',
+     #Url codeudor
+    path('prestamos/codeudor/<str:codeudor>',
+         views.IdCodeudor.as_view(), name='codeudor_id'),
+    #Url deudor
+    path('prestamos/deudor/<str:deudor>',
+         views.IdDeudor.as_view(), name='deudor_id'),
+     #delete
+    path('prestamos/delete/<str:idPrestamo>',
          views.deletePrestamo.as_view(), name='prestamos_delete'),
-    path('prestamos/update/<str:solicitudPrestamo>',
+    path('prestamos/update/<str:idPrestamo>',
          views.updatePrestamo.as_view(), name='prestamos_update'),
     ##################################### URL's ABONOS. ######################################
     path('abono/create', views.AbonoView.as_view(), name='abono_create'),
