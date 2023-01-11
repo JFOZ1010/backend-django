@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.validators import ValidationError
 from django.utils.translation import gettext as _
-from api.models import Ahorro, Prestamo, User, Abono, Multa, Reunion, ReunionPresencial, ReunionVirtual, Cliente, Rol
+from api.models import Ahorro, Prestamo, User, Abono, Multa, Reunion, ReunionPresencial, ReunionVirtual
 from django.contrib.auth.hashers import make_password
 from django.db import models
 
@@ -14,152 +14,52 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = [
-            "id",
-            "username",
-            "email",
-            "password",
-            "rol",
-            "first_name",
-            "last_name",
-            "is_active",
-            "fechaNacimiento",
-            "documento",
-            "ciudad",
-            "direccion",
-            "ocupacion",
-            "telefono"
-        ]
+        fields = ["id", "username", "email", "password",
+                  "rol", "first_name", "last_name", "is_active", "fechaNacimiento", "documento", "ciudad", "direccion", "ocupacion", "telefono"]
         constraints = [
             models.UniqueConstraint(fields=['email'], condition=models.Q(
                 is_deleted=False), name='unique_undeleted_name')
         ]
 
     def validate(self, attrs):
-
-        user_exist = self.Meta.model.objects.filter(
-            documento=attrs['documento']).exists()
-        if user_exist:
-            my_user = self.Meta.model.objects.get(documento=attrs['documento'])
-            if not attrs['password'] == my_user.password:
-                attrs['password'] = make_password(attrs['password'])
-        else:
-            attrs['password'] = make_password(attrs['password'])
-
+        email_exists = User.objects.filter(email=attrs["email"]).exists()
+        doc_exists = User.objects.filter(id=attrs["documento"]).exists()
+        if email_exists and doc_exists:
+            raise ValidationError(
+                'Ya hay un usuario con su correo y documento')
+        attrs['password'] = make_password(attrs['password'])
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
+        email = validated_data.get('email', '')
 
-        instance.username = validated_data.get('username', instance.username)
-        instance.email = validated_data.get('email', instance.email)
-        instance.password = validated_data.get('password', instance.password)
-        instance.rol = validated_data.get('rol', instance.rol)
-        instance.first_name = validated_data.get(
-            'first_name', instance.first_name)
-        instance.last_name = validated_data.get(
-            'last_name', instance.last_name)
-        instance.is_active = validated_data.get(
-            'is_active', instance.is_active)
-        instance.fechaNacimiento = validated_data.get(
-            'fechaNacimiento', instance.fechaNacimiento)
-        instance.documento = validated_data.get(
-            'documento', instance.documento)
-        instance.ciudad = validated_data.get('ciudad', instance.ciudad)
-        instance.direccion = validated_data.get(
-            'direccion', instance.direccion)
-        instance.ocupacion = validated_data.get(
-            'ocupacion', instance.ocupacion)
-        instance.telefono = validated_data.get('telefono', instance.telefono)
-        instance.save()
-
-        return instance
-
-
-class ClienteSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Cliente
-        fields = [
-            "id",
-            "email",
-            "password",
-            "rol",
-            "asociadoVinculado",
-            "first_name",
-            "last_name",
-            "is_active",
-            "documento",
-            "telefono"
-        ]
-
-    def validate(self, attrs):
-
-        # Validación como usuario
-        user_exist = User.objects.filter(
-            documento=attrs['documento']).exists()
-        if user_exist:
-            my_user = User.objects.get(documento=attrs['documento'])
-            if not attrs['password'] == my_user.password:
-                attrs['password'] = make_password(attrs['password'])
-        else:
-            attrs['password'] = make_password(attrs['password'])
-
-        # Validación como cliente
-        user_asociado_exist = User.objects.filter(
-            documento=attrs['asociadoVinculado']).exists
-
-        if not user_asociado_exist:
-            raise ValidationError(
-                'El asociado no existe'
-            )
-        if not User.objects.get(documento=attrs['asociadoVinculado']).rol == Rol.ASOCIADO:
-            raise ValidationError(
-                'No es asociado'
-            )
-        if not attrs['rol'] == Rol.CLIENTE:
-            raise ValidationError(
-                'No se está registrando como Cliente'
-            )
-
-        return super().validate(attrs)
-
-    def update(self, instance, validated_data):
-
-        instance.asociadoVinculado = validated_data.get(
-            'asociadoVinculado', instance.asociadoVinculado)
-        instance.email = validated_data.get('email', instance.email)
-        instance.password = validated_data.get('password', instance.password)
-        instance.rol = validated_data.get('rol', instance.rol)
-        instance.first_name = validated_data.get(
-            'first_name', instance.first_name)
-        instance.last_name = validated_data.get(
-            'last_name', instance.last_name)
-        instance.is_active = validated_data.get(
-            'is_active', instance.is_active)
-        instance.fechaNacimiento = validated_data.get(
-            'fechaNacimiento', instance.fechaNacimiento)
-        instance.documento = validated_data.get(
-            'documento', instance.documento)
-        instance.telefono = validated_data.get('telefono', instance.telefono)
-        instance.save()
-
-        return instance
+        if User.objects.exclude(pk=instance.pk).filter(email=email):
+            raise serializers.ValidationError(
+                'User with this email already exists.')
+        return super().update(instance, validated_data)
 
 
 # Serializacion para prestamos
 
+
 class PrestamoSerializer(serializers.ModelSerializer):
+    '''    
+solicitudPrestamo = serializers.CharField()
+    codeudor_id = serializers.IntegerField()
+    deudor_id = serializers.IntegerField()
+    monto = serializers.IntegerField()
+    fecha = serializers.DateField()
+    estadoPrestamo = serializers.BooleanField()
+    interes = serializers.FloatField()
+    comision = serializers.IntegerField()'''
 
     class Meta:
         model = Prestamo
-        fields = ["idPrestamo", "codeudor", "deudor", "monto",
-                  "fecha", "estadoPrestamo", "interes","comision","pagoDeuda"]
+        fields = ["solicitudPrestamo", "codeudor", "deudor", "monto",
+                  "fecha", "estadoPrestamo", "interes","comision"]
 
     def create(self, validated_data):
         return Prestamo.objects.create(**validated_data)
-
-
-#####################
 
 
 class AhorroSerializer(serializers.ModelSerializer):
@@ -169,7 +69,7 @@ class AhorroSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ahorro
         fields = ["idAhorro", "DocAsociado", "fecha", "monto",
-                  "descripcion", "firmaDigital", "tipoConsignacion", "autorizado"]
+                  "descripcion", "firmaDigital", "tipoConsignacion"]
 
     def create(self, validated_data):
         return Ahorro.objects.create(**validated_data)
@@ -181,65 +81,44 @@ class AbonoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Abono
-        fields = '__all__'
+        fields = ["idAbono", "idPrestamo", "cuentaAhorro", "abona",
+                  "monto", "fecha", "descripcion"]
 
-    # def validate(self, attrs):
-    ##    monto_nat = attrs["monto"] <= 0
-    # print(attrs["cuentaAhorro"])
-    # if (attrs["cuentaPrestamo"]):
-    # raise ValidationError(
-    ##            "Hay prestamo"
-    # )
-    # if (attrs["cuentaAhorro"] and attrs["cuentaSancion"]):
-    # raise ValidationError(
-    ##            "Debe abonar solo a una cuenta"
-    # )
-    # if (attrs["cuentaPrestamo"] and attrs["cuentaSancion"]):
-    # raise ValidationError(
-    ##            "Debe abonar solo a una cuenta"
-    # )
-    # abona_exist = User.objects.filter(
-    # documento=attrs["abona"]
-    # ).exists()
-    # prestamos_exist = Prestamo.objects.filter(
-    # solicitudPrestamo=attrs["cuentaPrestamo"]
-    # ).exists()
-    # ahorro_exist = Ahorro.objects.filter(
-    # idAhorro=attrs["cuentaAhorro"]
-    # ).exists()
-    # multa_exist = Multa.objects.filter(
-    # idMulta=attrs["cuentaSancion"]
-    # ).exists()
-    # if abona_exist:
-    # raise ValidationError(
-    ##            "El abonador no existe"
-    # )
-    # if prestamos_exist:
-    # raise ValidationError(
-    ##            "El prestamo no existe"
-    # )
-    # if ahorro_exist:
-    # raise ValidationError(
-    ##            "No existe la cuenta de ahorro"
-    # )
-    # if multa_exist:
-    # raise ValidationError(
-    ##            "No existe la cuenta de sancion"
-    # )
-    # if monto_nat:
-    # raise ValidationError(
-    ##            "Ingrese un monto válido"
-    # )
-    # return super().validate(attrs)
+        def validate(self, attrs):
+            abona_exist = User.objects.filter(
+                documento=attrs["abona"]).exists()
+            prestamos_exist = Prestamo.objects.filter(
+                idPrestamo=attrs["prestamo"]).exists()
+            ahorro_exist = Ahorro.objects.filter(
+                idAhorro=attrs["cuentaAhorro"]).exists()
+            monto_nat = attrs["monto"] <= 0
+
+            if abona_exist:
+                raise ValidationError(
+                    "El abonador no existe"
+                )
+            if prestamos_exist:
+                raise ValidationError(
+                    "El prestamo no existe"
+                )
+            if ahorro_exist:
+                raise ValidationError(
+                    "No existe la cuenta de ahorro"
+                )
+            if monto_nat:
+                raise ValidationError(
+                    "Ingrese un monto válido"
+                )
+            return super().validate(attrs)
 
 
-class SancionSerializer(serializers.ModelSerializer):
+class SancionSerializer(serializers.Serializer):
 
     class Meta:
 
         model = Multa
-        #fields = ["asociadoReferente", "motivo", "costo", "estadoMulta"]
-        fields = "__all__"
+        fields = ["idAsociado", "motivo", "costo", "estadoMulta"]
+        #fields = "__all__"
 
     def create(self, validated_data):
         return Multa.objects.create(**validated_data)
