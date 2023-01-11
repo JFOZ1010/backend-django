@@ -130,8 +130,8 @@ class Reunion(models.Model):
     tipoReunion = models.CharField(max_length=10, null=False)
     asistencia = models.BooleanField(default=True, null=False)
 
-    def __str__(self):
-        return self.idReunion + self.asociado
+    def __int__(self):
+        return self.idReunion
 
     class Meta:
         constraints = [
@@ -237,3 +237,23 @@ class Abono(models.Model):
     class Meta:
         verbose_name = 'Abono'
         verbose_name_plural = 'Abonos'
+
+
+class Asistencia(models.Model):
+    id = models.AutoField(primary_key=True)
+    reunion = models.ForeignKey(
+        Reunion, on_delete=models.CASCADE, to_field='idReunion', null=False, related_name='asistentes'
+    )
+    asistente = models.ForeignKey(
+        User, to_field='documento', on_delete=models.CASCADE, null=False
+    )
+    asiste = models.BooleanField(default=False, null=False)
+
+    class Meta:
+        verbose_name = 'Asistencia'
+        verbose_name_plural = 'Asistencias'
+        unique_together = ['reunion', 'asistente']
+        ordering = ['asistente']
+
+    def __str__(self):
+        return '%s: %b' % (self.asistente, self.asiste)
