@@ -255,5 +255,5 @@ class Asistencia(models.Model):
         unique_together = ['reunion', 'asistente']
         ordering = ['asistente']
 
-    def __str__(self):
+    def __int__(self):
         return '%s: %b' % (self.asistente, self.asiste)

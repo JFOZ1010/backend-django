@@ -11,8 +11,8 @@ from django.http import JsonResponse
 from django.http import Http404
 
 # Modulos locales
-from api.models import Abono, User, Ahorro, Prestamo, Multa, Reunion, ReunionVirtual, ReunionPresencial, Cliente
-from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer, AbonoSerializer, SancionSerializer, ReunionSerializer, ReunionPresencialSerializer, ReunionVirtualSerializer, ClienteSerializer
+from api.models import Abono, User, Ahorro, Prestamo, Multa, Reunion, ReunionVirtual, ReunionPresencial, Cliente, Asistencia
+from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer, AbonoSerializer, SancionSerializer, ReunionSerializer, ReunionPresencialSerializer, ReunionVirtualSerializer, ClienteSerializer, AsistenciaSerializer
 from .tokens import create_jwt_pair_for_user
 
 # modulos nuevos que importo del framework DRF.
@@ -739,3 +739,40 @@ class ReunionVirtualDeleteView(generics.DestroyAPIView):
         if user.delete():
             return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+################## Sección de reuniones ##################
+
+
+# @method_decorator(csrf_exempt, name='dispatch')
+# class UpdateAsistenciaView(generics.UpdateAPIView):
+#     serializer_class = AsistenciaSerializer
+#     model = Asistencia
+#     permission_classes = [permissions.AllowAny]
+
+#     def get_object(self, id):
+#         try:
+#             return self.model.objects.get(pk=id)
+#         except self.model.DoesNotExist:
+#             raise Http404(
+#                 'La asistencia no existe'
+#             )
+
+#     def put(self, request: Request, id):
+#         asistencia = self.get_object(id)
+#         serializer = self.serializer_class(instance=asiste)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AsistenciaListView(generics.ListAPIView):
+    model = Asistencia
+    serializer_class = AsistenciaSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, *args, **kwargs):
+        reunion_id = self.kwargs.get('reunion')
+        reunion = Reunion.objects.get(pk=reunion_id)
+        print(reunion)
+        asistencia = self.model.objects.filter(reunion=reunion).all()
+        print(asistencia)
+        serializer = self.serializer_class(asistencia, many=True)
+        return Response(data=serializer, status=status.HTTP_200_OK)

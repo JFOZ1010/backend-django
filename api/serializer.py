@@ -263,8 +263,6 @@ class AsistenciaSerializer(serializers.ModelSerializer):
 
 class ReunionSerializer(serializers.ModelSerializer):
 
-    asistentes = AsistenciaSerializer(many=True)
-
     class Meta:
         model = Reunion
         fields = "__all__"
@@ -358,7 +356,8 @@ class ReunionVirtualSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
 
         asociado_exist = User.objects.filter(
-            documento=attrs["reunionAsociado"]).exists()
+            documento=attrs["reunionAsociado"]
+        ).exists()
         if not asociado_exist:
             raise ValidationError(
                 "El asociado no existe"
@@ -378,6 +377,7 @@ class ReunionVirtualSerializer(serializers.ModelSerializer):
         return reunion
 
     def update(self, instance, validated_data):
+
         instance.reunionAsociado = validated_data.get(
             'reunionAsociado', instance.reunionAsociado)
         instance.fecha = validated_data.get('fecha', instance.fecha)
@@ -386,6 +386,7 @@ class ReunionVirtualSerializer(serializers.ModelSerializer):
         instance.asistencia = validated_data.get(
             'asistencia', instance.asistencia)
         instance.enlace = validated_data.get('enlace', instance.enlace)
+
         instance.save()
 
         return instance
