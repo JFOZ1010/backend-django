@@ -153,6 +153,8 @@ class PrestamoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prestamo
         fields = '__all__'
+        #fields = ["id", "codeudor", "deudor", "monto",
+        #          "fecha", "estadoPrestamo", "interes", "comision","pagoDeuda"]
 
     def create(self, validated_data):
         return Prestamo.objects.create(**validated_data)

@@ -159,10 +159,10 @@ class ReunionVirtual(Reunion):
 class Prestamo(models.Model):
     id = models.AutoField(primary_key=True)
     # codeudor es una llave foranea de asociado
-    codeudor = models.ForeignKey(
+    codeudor_id = models.ForeignKey(
         User, name='codeudor', null=False, on_delete=models.CASCADE, to_field="documento")
     # deudor es una llave foranea de cliente
-    deudor = models.ForeignKey(
+    deudor_id = models.ForeignKey(
         User, name='deudor', null=False, on_delete=models.CASCADE, related_name='documentos')
     monto = models.IntegerField()
     fecha = models.DateField(auto_now_add=True, null=False)
