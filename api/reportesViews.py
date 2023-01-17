@@ -16,12 +16,18 @@ from rest_framework import permissions
 
 # Definicion de funciones y clases para reportes
 
+
+# calDate se devuelve un date de fecha para utilizar en la clase Range_date
 def calDate(_date):
     return datetime.date(
         _date['year'],
         _date['month'],
         _date['day']
     )
+
+# Range_date se encarga de recibir la resquest.data de una petición
+# para sacar la fecha de inicio y fecha de fin para calcular el rango
+# de manera dinamica.
 
 
 class Range_date():
@@ -100,6 +106,8 @@ class Reporte_MasAhorros(generics.GenericAPIView):
     def get(self, request):
         ahorro_max = self.model.objects.values(
             'DocAsociado_id'
+        ).filter(
+            DocAsociado_id__rol__exact='asociado'
         ).order_by(
             'DocAsociado_id'
         ).annotate(
