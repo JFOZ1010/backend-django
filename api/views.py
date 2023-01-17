@@ -272,51 +272,33 @@ class PrestamoId(generics.GenericAPIView):
 
 # Busqueda del prestamo por documentos
 # Codeudor
-
-
 @method_decorator(csrf_exempt, name='dispatch')
-class IdCodeudor(generics.GenericAPIView):
-
+class IdCodeudor(generics.ListAPIView):
+    permission_classes = [permissions.AllowAny]
     serializer_class = PrestamoSerializer
     model = Prestamo
-    permission_classes = [permissions.AllowAny]
-    queryset = Prestamo.objects.all()
 
-    def getPrestamo(self, codeudor):
-        try:
-            return Prestamo.objects.get(codeudor=codeudor)
-        except Prestamo.DoesNotExist:
-            raise Http404("El Prestamo no existe")
-
-    def get(self, request: Response, codeudor=''):
-
-        prestamo = self.getPrestamo(codeudor)
-        serializer = PrestamoSerializer(prestamo, many=False)
-        return Response(data=serializer.data)
+    def get_queryset(self):
+        user= self.kwargs['codeudor']
+        print(user)
+        return Prestamo.objects.filter(codeudor_id=user).all()
 
 # Busqueda del prestamo por documentos
 # Deudor
-
-
 @method_decorator(csrf_exempt, name='dispatch')
-class IdDeudor(generics.GenericAPIView):
+class IdDeudor(generics.ListAPIView):
 
+    permission_classes = [permissions.AllowAny]
     serializer_class = PrestamoSerializer
     model = Prestamo
-    permission_classes = [permissions.AllowAny]
-    queryset = Prestamo.objects.all()
 
-    def getPrestamo(self, deudor):
-        try:
-            return Prestamo.objects.get(deudor=deudor)
-        except Prestamo.DoesNotExist:
-            raise Http404("El Prestamo no existe")
+    def get_queryset(self):
+        user= self.kwargs['deudor']
+        print(user)
+        print(len(Prestamo.objects.filter(deudor_id=user).all()))
+        return Prestamo.objects.filter(deudor_id=user).all()
 
-    def get(self, request: Response, deudor=''):
 
-        prestamo = self.getPrestamo(deudor)
-        serializer = PrestamoSerializer(prestamo, many=False)
-        return Response(data=serializer.data)
 
 # Delete Prestamo
 
