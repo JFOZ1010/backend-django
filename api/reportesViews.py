@@ -1,5 +1,5 @@
 # Modulos DJANGO
-from django.db.models import Sum
+from django.db.models import Sum, Count
 import datetime
 
 # Modulos locales
@@ -69,7 +69,8 @@ class Reporte_MesMasPrestamos(generics.GenericAPIView):
         loans_octuber = len(self.model.objects.filter(fecha__month=10))
         loans_november = len(self.model.objects.filter(fecha__month=11))
         loans_december = len(self.model.objects.filter(fecha__month=12))
-        return Response({
+
+        loans_len = {
             "Enero": loans_january,
             "Febrero": loans_february,
             "Marzo": loans_march,
@@ -82,7 +83,12 @@ class Reporte_MesMasPrestamos(generics.GenericAPIView):
             "Octubre": loans_octuber,
             "Noviembre": loans_november,
             "Diciembre": loans_december
-        }, status=status.HTTP_200_OK)
+        }
+        sorted_loans_len = sorted(
+            loans_len.items(), key=lambda x: x[1], reverse=True)
+        sorted_loans_len = dict(sorted_loans_len[0:10])
+
+        return Response(sorted_loans_len, status=status.HTTP_200_OK)
 
 # Top de Asociados que más ahorrado
 
@@ -132,29 +138,36 @@ class Reporte_MontoMesPrestamo(generics.GenericAPIView):
 
     def get(self, request):
         loans_january = self.model.objects.filter(
-            fecha__month=1).annotate(Total=Sum('monto'))
-        loans_february = len(self.model.objects.filter(fecha__month=2))
-        loans_march = len(self.model.objects.filter(fecha__month=3))
-        loans_april = len(self.model.objects.filter(fecha__month=4))
-        loans_may = len(self.model.objects.filter(fecha__month=5))
-        loans_june = len(self.model.objects.filter(fecha__month=6))
-        loans_july = len(self.model.objects.filter(fecha__month=7))
-        loans_august = len(self.model.objects.filter(fecha__month=8))
-        loans_september = len(self.model.objects.filter(fecha__month=9))
-        loans_octuber = len(self.model.objects.filter(fecha__month=10))
-        loans_november = len(self.model.objects.filter(fecha__month=11))
-        loans_december = len(self.model.objects.filter(fecha__month=12))
-        return Response({
-            "Enero": loans_january,
-            "Febrero": loans_february,
-            "Marzo": loans_march,
-            "Abril": loans_april,
-            "Mayo": loans_may,
-            "Junio": loans_june,
-            "Julio": loans_july,
-            "Agosto": loans_august,
-            "Septiembre": loans_september,
-            "Octubre": loans_octuber,
-            "Noviembre": loans_november,
-            "Diciembre": loans_december
-        }, status=status.HTTP_200_OK)
+            fecha__month=1
+        ).annotate(
+            Enero=Count('fecha')
+        ).annotate(
+            Total=Sum('monto')
+        )
+        print(loans_january)
+        # loans_february = len(self.model.objects.filter(fecha__month=2))
+        # loans_march = len(self.model.objects.filter(fecha__month=3))
+        # loans_april = len(self.model.objects.filter(fecha__month=4))
+        # loans_may = len(self.model.objects.filter(fecha__month=5))
+        # loans_june = len(self.model.objects.filter(fecha__month=6))
+        # loans_july = len(self.model.objects.filter(fecha__month=7))
+        # loans_august = len(self.model.objects.filter(fecha__month=8))
+        # loans_september = len(self.model.objects.filter(fecha__month=9))
+        # loans_octuber = len(self.model.objects.filter(fecha__month=10))
+        # loans_november = len(self.model.objects.filter(fecha__month=11))
+        # loans_december = len(self.model.objects.filter(fecha__month=12))
+        # return Response({
+        #     "Enero": loans_january,
+        #     "Febrero": loans_february,
+        #     "Marzo": loans_march,
+        #     "Abril": loans_april,
+        #     "Mayo": loans_may,
+        #     "Junio": loans_june,
+        #     "Julio": loans_july,
+        #     "Agosto": loans_august,
+        #     "Septiembre": loans_september,
+        #     "Octubre": loans_octuber,
+        #     "Noviembre": loans_november,
+        #     "Diciembre": loans_december
+        # }, status=status.HTTP_200_OK)
+        return Response(loans_january)

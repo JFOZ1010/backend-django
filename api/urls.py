@@ -40,7 +40,7 @@ urlpatterns = [
          views.AhorrosUpdate.as_view(), name='ahorros_update'),
 
     ##################################### URL's PRESTAMOS. ######################################
-    #Urls##################
+    # Urls##################
 
     ##################################### URL's PRESTAMOS. ######################################
     path('prestamos/create', views.PrestamoCreate.as_view(),
@@ -96,10 +96,12 @@ urlpatterns = [
     path("reuniones-virtual/delete/<int:id>",
          views.ReunionVirtualDeleteView.as_view(), name="reunionesVirtual_delete"),
 
-    path("reporte/montoPrestamoMes",
-         reportesViews.Reporte_MesMasPrestamos.as_view(), name='monto_prestamos_mes'),
+    path("reportes/prestamotop",
+         reportesViews.Reporte_MesMasPrestamos.as_view(), name='top_prestamo'),
     path("reportes/ahorrotop",
          reportesViews.Reporte_MasAhorros.as_view(), name='max_ahorros'),
     path("reporte/fechasreunion",
-         reportesViews.Reporte_ReunionesFechas.as_view(), name='fecha_reuniones')
+         reportesViews.Reporte_ReunionesFechas.as_view(), name='fecha_reuniones'),
+    path("reportes/prestamosmes",
+         reportesViews.Reporte_MontoMesPrestamo.as_view(), name='monto_prestamos_mes')
 ]
