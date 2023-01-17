@@ -103,5 +103,7 @@ urlpatterns = [
     path("reporte/fechasreunion",
          reportesViews.Reporte_ReunionesFechas.as_view(), name='fecha_reuniones'),
     path("reportes/prestamosmes",
-         reportesViews.Reporte_MontoMesPrestamo.as_view(), name='monto_prestamos_mes')
+         reportesViews.Reporte_MontoMesPrestamo.as_view(), name='monto_prestamos_mes'),
+    path("reportes/prestamostopclientes",
+         reportesViews.Reporte_ClientesMasPrestamoMes.as_view(), name='clientes_mas_prestamos_mes')
 ]

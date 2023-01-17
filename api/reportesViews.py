@@ -1,5 +1,5 @@
 # Modulos DJANGO
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, F
 import datetime
 
 # Modulos locales
@@ -107,8 +107,8 @@ class Reporte_MasAhorros(generics.GenericAPIView):
         )
         return Response(data=ahorro_max)
 
-
 # Reuniones por fecha (fecha inicial - fecha final)
+
 
 class Reporte_ReunionesFechas(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
@@ -139,35 +139,72 @@ class Reporte_MontoMesPrestamo(generics.GenericAPIView):
     def get(self, request):
         loans_january = self.model.objects.filter(
             fecha__month=1
+        ).aggregate(january=Sum('monto'))
+        loans_february = self.model.objects.filter(
+            fecha__month=2
+        ).aggregate(february=Sum('monto'))
+        loans_march = self.model.objects.filter(
+            fecha__month=3
+        ).aggregate(march=Sum('monto'))
+        loans_april = self.model.objects.filter(
+            fecha__month=4
+        ).aggregate(april=Sum('monto'))
+        loans_may = self.model.objects.filter(
+            fecha__month=5
+        ).aggregate(may=Sum('monto'))
+        loans_june = self.model.objects.filter(
+            fecha__month=6
+        ).aggregate(june=Sum('monto'))
+        loans_july = self.model.objects.filter(
+            fecha__month=7
+        ).aggregate(july=Sum('monto'))
+        loans_august = self.model.objects.filter(
+            fecha__month=8
+        ).aggregate(august=Sum('monto'))
+        loans_september = self.model.objects.filter(
+            fecha__month=9
+        ).aggregate(september=Sum('monto'))
+        loans_octuber = self.model.objects.filter(
+            fecha__month=10
+        ).aggregate(octuber=Sum('monto'))
+        loans_november = self.model.objects.filter(
+            fecha__month=11
+        ).aggregate(november=Sum('monto'))
+        loans_december = self.model.objects.filter(
+            fecha__month=12
+        ).aggregate(december=Sum('monto'))
+        return Response({
+            "Enero": loans_january['january'],
+            "Febrero": loans_february['february'],
+            "Marzo": loans_march['march'],
+            "Abril": loans_april['april'],
+            "Mayo": loans_may['may'],
+            "Junio": loans_june['june'],
+            "Julio": loans_july['july'],
+            "Agosto": loans_august['august'],
+            "Septiembre": loans_september['september'],
+            "Octubre": loans_octuber['octuber'],
+            "Noviembre": loans_november['november'],
+            "Diciembre": loans_december['december']
+        }, status=status.HTTP_200_OK)
+
+# Clientes que más préstamos realizan (fecha inicial - fecha final)
+
+
+class Reporte_ClientesMasPrestamoMes(generics.GenericAPIView):
+    model = Prestamo
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        _date = Range_date(request.data, request.data)
+        start_date = _date.calDate_start()
+        end_date = _date.calDate_end()
+        clientes = self.model.objects.values(
+            'deudor'
+        ).filter(
+            fecha__range=(start_date, end_date),
+            deudor__rol__exact='cliente'
         ).annotate(
-            Enero=Count('fecha')
-        ).annotate(
-            Total=Sum('monto')
+            prestamos=Count('deudor', distinct=False)
         )
-        print(loans_january)
-        # loans_february = len(self.model.objects.filter(fecha__month=2))
-        # loans_march = len(self.model.objects.filter(fecha__month=3))
-        # loans_april = len(self.model.objects.filter(fecha__month=4))
-        # loans_may = len(self.model.objects.filter(fecha__month=5))
-        # loans_june = len(self.model.objects.filter(fecha__month=6))
-        # loans_july = len(self.model.objects.filter(fecha__month=7))
-        # loans_august = len(self.model.objects.filter(fecha__month=8))
-        # loans_september = len(self.model.objects.filter(fecha__month=9))
-        # loans_octuber = len(self.model.objects.filter(fecha__month=10))
-        # loans_november = len(self.model.objects.filter(fecha__month=11))
-        # loans_december = len(self.model.objects.filter(fecha__month=12))
-        # return Response({
-        #     "Enero": loans_january,
-        #     "Febrero": loans_february,
-        #     "Marzo": loans_march,
-        #     "Abril": loans_april,
-        #     "Mayo": loans_may,
-        #     "Junio": loans_june,
-        #     "Julio": loans_july,
-        #     "Agosto": loans_august,
-        #     "Septiembre": loans_september,
-        #     "Octubre": loans_octuber,
-        #     "Noviembre": loans_november,
-        #     "Diciembre": loans_december
-        # }, status=status.HTTP_200_OK)
-        return Response(loans_january)
+        return Response(data=clientes, status=status.HTTP_200_OK)
