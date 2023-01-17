@@ -86,7 +86,7 @@ class Ahorro(models.Model):
     firmaDigital = models.CharField(max_length=200)
     tipoConsignacion = models.CharField(max_length=200)
 
-    def __str__(self):
+    def __int__(self):
         return self.idAhorro
 
 
@@ -101,7 +101,7 @@ class Multa(models.Model):
     estadoMulta = models.BooleanField(null=False)
     montoPagado = models.IntegerField(null=True)
 
-    def __str__(self):
+    def __int__(self):
         return self.idMulta
 
 
@@ -112,7 +112,7 @@ class CuotaManejo(models.Model):
     fechaFin = models.DateField(auto_now=False, auto_now_add=False)
     tasaInteres = models.IntegerField()
 
-    def __str__(self):
+    def __int__(self):
         return self.idCuotaManejo
 
 
@@ -130,8 +130,8 @@ class Reunion(models.Model):
     tipoReunion = models.CharField(max_length=10, null=False)
     asistencia = models.BooleanField(default=True, null=False)
 
-    def __str__(self):
-        return self.idReunion + self.asociado
+    def __int__(self):
+        return self.idReunion
 
     class Meta:
         constraints = [
@@ -145,14 +145,14 @@ class ReunionPresencial(Reunion):
     sitio = models.CharField(max_length=100)
     costo = models.IntegerField(null=False, validators=[MinValueValidator(3)])
 
-    def __str__(self):
+    def __int__(self):
         return self.id_reunionPresencial
 
 
 class ReunionVirtual(Reunion):
     enlace = models.CharField(max_length=200, null=False)
 
-    def __str__(self):
+    def __int__(self):
         return self.id_reunionVirtual
 
 
@@ -182,8 +182,9 @@ class Prestamo(models.Model):
         else:
             return errors.append("Monto no valido")
 
-    def __str__(self):
-        return self.idPrestamo + " a: " + self.deudor  # Cambiara por deudor luego
+    def __int__(self):
+        # Cambiara por deudor luego
+        return self.id
 
     class Meta:
         verbose_name = 'prestamo'
@@ -220,7 +221,7 @@ class Abono(models.Model):
     abona = models.ForeignKey(
         User, name='abona', on_delete=models.CASCADE, null=False, to_field="documento")
     cuentaAhorro = models.ForeignKey(
-        Ahorro, name="cuentaAhorro", null=False, to_field="idAhorro", on_delete=models.CASCADE)
+        Ahorro, name="cuentaAhorro", null=True, to_field="idAhorro", on_delete=models.CASCADE)
     cuentaPrestamo = models.ForeignKey(
         Prestamo, on_delete=models.CASCADE, to_field='id', null=True
     )
@@ -230,9 +231,29 @@ class Abono(models.Model):
     fecha = models.DateField(auto_now_add=True, null=False)
     descripcion = models.CharField(max_length=200, blank=True)
 
-    def __str__(self):
+    def __int__(self):
         return self.idAbono
 
     class Meta:
         verbose_name = 'Abono'
         verbose_name_plural = 'Abonos'
+
+
+class Asistencia(models.Model):
+    id = models.AutoField(primary_key=True)
+    reunion = models.ForeignKey(
+        Reunion, on_delete=models.CASCADE, to_field='idReunion', null=False, related_name='asistentes'
+    )
+    asistente = models.ForeignKey(
+        User, to_field='documento', on_delete=models.CASCADE, null=False
+    )
+    asiste = models.BooleanField(default=False, null=False)
+
+    class Meta:
+        verbose_name = 'Asistencia'
+        verbose_name_plural = 'Asistencias'
+        unique_together = ['reunion', 'asistente']
+        ordering = ['asistente']
+
+    def __str__(self):
+        return '%s: %b' % (self.asistente, self.asiste)

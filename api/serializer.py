@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.validators import ValidationError
 from django.utils.translation import gettext as _
-from api.models import Ahorro, Prestamo, User, Abono, Multa, Reunion, ReunionPresencial, ReunionVirtual, Cliente, Rol
+from api.models import Ahorro, Asistencia, Prestamo, User, Abono, Multa, Reunion, ReunionPresencial, ReunionVirtual, Cliente, Rol
 from django.contrib.auth.hashers import make_password
 from django.db import models
 
@@ -184,54 +184,65 @@ class AbonoSerializer(serializers.ModelSerializer):
         model = Abono
         fields = '__all__'
 
-    # def validate(self, attrs):
-    ##    monto_nat = attrs["monto"] <= 0
-    # print(attrs["cuentaAhorro"])
-    # if (attrs["cuentaPrestamo"]):
-    # raise ValidationError(
-    ##            "Hay prestamo"
-    # )
-    # if (attrs["cuentaAhorro"] and attrs["cuentaSancion"]):
-    # raise ValidationError(
-    ##            "Debe abonar solo a una cuenta"
-    # )
-    # if (attrs["cuentaPrestamo"] and attrs["cuentaSancion"]):
-    # raise ValidationError(
-    ##            "Debe abonar solo a una cuenta"
-    # )
-    # abona_exist = User.objects.filter(
-    # documento=attrs["abona"]
-    # ).exists()
-    # prestamos_exist = Prestamo.objects.filter(
-    # solicitudPrestamo=attrs["cuentaPrestamo"]
-    # ).exists()
-    # ahorro_exist = Ahorro.objects.filter(
-    # idAhorro=attrs["cuentaAhorro"]
-    # ).exists()
-    # multa_exist = Multa.objects.filter(
-    # idMulta=attrs["cuentaSancion"]
-    # ).exists()
-    # if abona_exist:
-    # raise ValidationError(
-    ##            "El abonador no existe"
-    # )
-    # if prestamos_exist:
-    # raise ValidationError(
-    ##            "El prestamo no existe"
-    # )
-    # if ahorro_exist:
-    # raise ValidationError(
-    ##            "No existe la cuenta de ahorro"
-    # )
-    # if multa_exist:
-    # raise ValidationError(
-    ##            "No existe la cuenta de sancion"
-    # )
-    # if monto_nat:
-    # raise ValidationError(
-    ##            "Ingrese un monto válido"
-    # )
-    # return super().validate(attrs)
+    def validate(self, attrs):
+
+        abona_exist = User.objects.filter(
+            documento=attrs["abona"]
+        ).exists()
+
+        if not abona_exist:
+            raise ValidationError(
+                "El abonador no existe"
+            )
+
+        monto_nat = attrs["monto"] <= 0
+
+        if monto_nat:
+            raise ValidationError(
+                'Es un monto invalido'
+            )
+
+        if (attrs["cuentaPrestamo"] and attrs["cuentaAhorro"]):
+            raise ValidationError(
+                "Debe abonar solo a una cuenta"
+            )
+        if (attrs["cuentaAhorro"] and attrs["cuentaSancion"]):
+            raise ValidationError(
+                "Debe abonar solo a una cuenta"
+            )
+        if (attrs["cuentaSancion"] and attrs["cuentaPrestamo"]):
+            raise ValidationError(
+                "Debe abonar solo a una cuenta"
+            )
+
+        if (attrs["cuentaPrestamo"]):
+            prestamos_exist = Prestamo.objects.filter(
+                id=attrs["cuentaPrestamo"]
+            ).exists()
+            if not prestamos_exist:
+                raise ValidationError(
+                    "El prestamo no existe"
+                )
+
+        if (attrs["cuentaAhorro"]):
+            ahorro_exist = Ahorro.objects.filter(
+                idAhorro=attrs["cuentaAhorro"]
+            ).exists()
+            if not ahorro_exist:
+                raise ValidationError(
+                    "No existe la cuenta de ahorro"
+                )
+
+        if (attrs["cuentaSancion"]):
+            multa_exist = Multa.objects.filter(
+                idMulta=attrs["cuentaSancion"]
+            ).exists()
+            if not multa_exist:
+                raise ValidationError(
+                    "No existe la cuenta de sancion"
+                )
+
+        return super().validate(attrs)
 
 
 class SancionSerializer(serializers.ModelSerializer):
@@ -246,78 +257,15 @@ class SancionSerializer(serializers.ModelSerializer):
         return Multa.objects.create(**validated_data)
 
 
-class ReunionPresencialSerializer(serializers.ModelSerializer):
-
+class AsistenciaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ReunionPresencial
-        fields = '__all__'
-
-    def validate(self, attrs):
-
-        asociado_exist = User.objects.filter(
-            documento=attrs["reunionAsociado"]).exists()
-        if asociado_exist:
-            raise ValidationError(
-                "El asociado no existe"
-            )
-        if attrs["costo"] < 0:
-            raise ValidationError(
-                "Monto no válido"
-            )
-        return super().validate(attrs)
-
-    def update(self, instance, validated_data):
-
-        instance.reunionAsociado = validated_data.get(
-            'reunionAsociado', instance.reunionAsociado)
-        instance.fecha = validated_data.get('fecha', instance.fecha)
-        instance.hora = validated_data.get('hora', instance.hora)
-        instance.motivo = validated_data.get('motivo', instance.motivo)
-        instance.asistencia = validated_data.get(
-            'asistencia', instance.asistencia)
-        instance.sitio = validated_data.get('sitio', instance.sitio)
-        instance.costo = validated_data.get('costo', instance.costo)
-        instance.save()
-
-        return instance
-
-
-class ReunionVirtualSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ReunionVirtual
-        fields = '__all__'
-
-    def validate(self, attrs):
-
-        asociado_exist = User.objects.filter(
-            documento=attrs["reunionAsociado"]).exists()
-        if asociado_exist:
-            raise ValidationError(
-                "El asociado no existe"
-            )
-        if attrs["enlace"] == '':
-            raise ValidationError(
-                "Ingrese un enlace para la reunión virtual"
-            )
-
-        return super().validate(attrs)
-
-    def update(self, instance, validated_data):
-        instance.reunionAsociado = validated_data.get(
-            'reunionAsociado', instance.reunionAsociado)
-        instance.fecha = validated_data.get('fecha', instance.fecha)
-        instance.hora = validated_data.get('hora', instance.hora)
-        instance.motivo = validated_data.get('motivo', instance.motivo)
-        instance.asistencia = validated_data.get(
-            'asistencia', instance.asistencia)
-        instance.enlace = validated_data.get('enlace', instance.enlace)
-        instance.save()
-
-        return instance
+        model = Asistencia
+        fields = ['asistente', 'asiste']
 
 
 class ReunionSerializer(serializers.ModelSerializer):
+
+    asistentes = AsistenciaSerializer(many=True)
 
     class Meta:
         model = Reunion
@@ -351,6 +299,95 @@ class ReunionSerializer(serializers.ModelSerializer):
             'tipoReunion', instance.tipoReunion)
         instance.asistencia = validated_data.get(
             'asistencia', instance.asistencia)
+        instance.save()
+
+        return instance
+
+
+class ReunionPresencialSerializer(serializers.ModelSerializer):
+
+    asistentes = AsistenciaSerializer(many=True)
+
+    class Meta:
+        model = ReunionPresencial
+        fields = '__all__'
+
+    def validate(self, attrs):
+
+        asociado_exist = User.objects.filter(
+            documento=attrs["reunionAsociado"]).exists()
+        if not asociado_exist:
+            raise ValidationError(
+                "El asociado no existe"
+            )
+        if attrs["costo"] < 0:
+            raise ValidationError(
+                "Monto no válido"
+            )
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        asistentes_data = validated_data.pop('asistentes')
+        reunion = self.Meta.model.objects.create(**validated_data)
+        for asistente_data in asistentes_data:
+            Asistencia.objects.create(reunion=reunion, **asistente_data)
+        return reunion
+
+    def update(self, instance, validated_data):
+
+        instance.reunionAsociado = validated_data.get(
+            'reunionAsociado', instance.reunionAsociado)
+        instance.fecha = validated_data.get('fecha', instance.fecha)
+        instance.hora = validated_data.get('hora', instance.hora)
+        instance.motivo = validated_data.get('motivo', instance.motivo)
+        instance.asistencia = validated_data.get(
+            'asistencia', instance.asistencia)
+        instance.sitio = validated_data.get('sitio', instance.sitio)
+        instance.costo = validated_data.get('costo', instance.costo)
+        instance.save()
+
+        return instance
+
+
+class ReunionVirtualSerializer(serializers.ModelSerializer):
+
+    asistentes = AsistenciaSerializer(many=True)
+
+    class Meta:
+        model = ReunionVirtual
+        fields = '__all__'
+
+    def validate(self, attrs):
+
+        asociado_exist = User.objects.filter(
+            documento=attrs["reunionAsociado"]).exists()
+        if not asociado_exist:
+            raise ValidationError(
+                "El asociado no existe"
+            )
+        if attrs["enlace"] == '':
+            raise ValidationError(
+                "Ingrese un enlace para la reunión virtual"
+            )
+
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        asistentes_data = validated_data.pop('asistentes')
+        reunion = self.Meta.model.objects.create(**validated_data)
+        for asistente_data in asistentes_data:
+            Asistencia.objects.create(reunion=reunion, **asistente_data)
+        return reunion
+
+    def update(self, instance, validated_data):
+        instance.reunionAsociado = validated_data.get(
+            'reunionAsociado', instance.reunionAsociado)
+        instance.fecha = validated_data.get('fecha', instance.fecha)
+        instance.hora = validated_data.get('hora', instance.hora)
+        instance.motivo = validated_data.get('motivo', instance.motivo)
+        instance.asistencia = validated_data.get(
+            'asistencia', instance.asistencia)
+        instance.enlace = validated_data.get('enlace', instance.enlace)
         instance.save()
 
         return instance
