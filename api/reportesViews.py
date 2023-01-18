@@ -216,3 +216,46 @@ class Reporte_ClientesMasPrestamoMes(generics.GenericAPIView):
             prestamos=Count('deudor', distinct=False)
         )
         return Response(data=clientes, status=status.HTTP_200_OK)
+
+#Author: JFx0Z0r - Juan Felipe Osorio.
+class Reporte_AsociadoPorPrestamo(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    model = Prestamo
+
+    def get(self, request):
+        _date = Range_date(request.data, request.data)
+        start_date = _date.calDate_start()
+        #start_date = datetime.date(2023,1,1)
+        #end_date = datetime.date(2023,1,31)
+        end_date = _date.calDate_end()
+        asociados = self.model.objects.values(
+            'deudor'
+        ).filter(
+            fecha__range=(start_date, end_date),
+            deudor__rol__exact='asociado'
+        ).annotate(
+            prestamos=Count('deudor', distinct=False)
+        )
+        return Response(data = asociados, status=status.HTTP_200_OK)
+
+#reporte de cantidad de multas por Asociados. 
+#Author: JFx0Z0r - Juan Felipe Osorio.
+class Reporte_MultasPorAsociado(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    model = Multa
+
+    def get(self, request):
+        _date = Range_date(request.data, request.data)
+        start_date = _date.calDate_start()
+        end_date = _date.calDate_end()
+        #start_date = datetime.date(2023,1,1)
+        #end_date = datetime.date(2023,1,31)
+        multas = self.model.objects.values(
+            'asociadoReferente'
+        ).filter(
+            fecha__range=(start_date, end_date),
+            #asociado__rol__exact = 'asociadoReferente'
+        ).annotate(
+            cantidad=Count('asociadoReferente', distinct=False)
+        )
+        return Response(data = multas, status=status.HTTP_200_OK)

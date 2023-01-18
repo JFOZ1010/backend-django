@@ -96,6 +96,7 @@ urlpatterns = [
     path("reuniones-virtual/delete/<int:id>",
          views.ReunionVirtualDeleteView.as_view(), name="reunionesVirtual_delete"),
 
+######################################## REPORTES. ################################################
     path("reportes/prestamotop",
          reportesViews.Reporte_MesMasPrestamos.as_view(), name='top_prestamo'),
     path("reportes/ahorrotop",
@@ -105,5 +106,8 @@ urlpatterns = [
     path("reportes/prestamosmes",
          reportesViews.Reporte_MontoMesPrestamo.as_view(), name='monto_prestamos_mes'),
     path("reportes/prestamostopclientes",
-         reportesViews.Reporte_ClientesMasPrestamoMes.as_view(), name='clientes_mas_prestamos_mes')
+         reportesViews.Reporte_ClientesMasPrestamoMes.as_view(), name='clientes_mas_prestamos_mes'), 
+    path("reportes/prestamoAsociado", reportesViews.Reporte_AsociadoPorPrestamo.as_view(), name='asociado_por_prestamo'),
+    path("reportes/multasAsociado", reportesViews.Reporte_MultasPorAsociado.as_view(), name='multas_por_asociado')
+
 ]
