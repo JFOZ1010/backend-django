@@ -1,6 +1,6 @@
 from django.urls import path
 import re
-from . import views
+from . import views, reportesViews
 
 # Agrego las rutas a una carpeta usuarios raiz
 urlpatterns = [
@@ -40,7 +40,7 @@ urlpatterns = [
          views.AhorrosUpdate.as_view(), name='ahorros_update'),
 
     ##################################### URL's PRESTAMOS. ######################################
-#Urls##################
+    # Urls##################
 
     ##################################### URL's PRESTAMOS. ######################################
     path('prestamos/create', views.PrestamoCreate.as_view(),
@@ -48,13 +48,13 @@ urlpatterns = [
     path('prestamos/', views.PrestamoList.as_view(), name='prestamos_list'),
     path('prestamos/<str:idPrestamo>',
          views.PrestamoId.as_view(), name='prestamos_id'),
-     #Url codeudor
+    # Url codeudor
     path('prestamos/codeudor/<str:codeudor>',
          views.IdCodeudor.as_view(), name='codeudor_id'),
     #Url deudor
     path('prestamos/deudor/<int:deudor>',
          views.IdDeudor.as_view(), name='deudor_id'),
-     #delete
+    # delete
     path('prestamos/delete/<str:idPrestamo>',
          views.deletePrestamo.as_view(), name='prestamos_delete'),
     path('prestamos/update/<str:idPrestamo>',
@@ -71,7 +71,8 @@ urlpatterns = [
     path('sanciones/create', views.SancionCreate.as_view(),
          name='sanciones_create'),
     path('sanciones/all', views.SancionList.as_view(), name='sanciones_list'),
-    path('sanciones/<str:documento>', views.SancionListUser.as_view(), name='sanciones_user'),
+    path('sanciones/<str:documento>',
+         views.SancionListUser.as_view(), name='sanciones_user'),
     path('sancion/update/<int:pk>',
          views.SancionUpdate.as_view(), name='sanciones_update'),
     path('sancion/delete/<int:pk>',
@@ -94,5 +95,19 @@ urlpatterns = [
          views.ReunionPresencialDeleteView.as_view(), name="reunionesPresencial_delete"),
     path("reuniones-virtual/delete/<int:id>",
          views.ReunionVirtualDeleteView.as_view(), name="reunionesVirtual_delete"),
+
+######################################## REPORTES. ################################################
+    path("reportes/prestamotop",
+         reportesViews.Reporte_MesMasPrestamos.as_view(), name='top_prestamo'),
+    path("reportes/ahorrotop",
+         reportesViews.Reporte_MasAhorros.as_view(), name='max_ahorros'),
+    path("reporte/fechasreunion",
+         reportesViews.Reporte_ReunionesFechas.as_view(), name='fecha_reuniones'),
+    path("reportes/prestamosmes",
+         reportesViews.Reporte_MontoMesPrestamo.as_view(), name='monto_prestamos_mes'),
+    path("reportes/prestamostopclientes",
+         reportesViews.Reporte_ClientesMasPrestamoMes.as_view(), name='clientes_mas_prestamos_mes'), 
+    path("reportes/prestamoAsociado", reportesViews.Reporte_AsociadoPorPrestamo.as_view(), name='asociado_por_prestamo'),
+    path("reportes/multasAsociado", reportesViews.Reporte_MultasPorAsociado.as_view(), name='multas_por_asociado')
 
 ]
