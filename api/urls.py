@@ -51,8 +51,8 @@ urlpatterns = [
     # Url codeudor
     path('prestamos/codeudor/<str:codeudor>',
          views.IdCodeudor.as_view(), name='codeudor_id'),
-    # Url deudor
-    path('prestamos/deudor/<str:deudor>',
+    #Url deudor
+    path('prestamos/deudor/<int:deudor>',
          views.IdDeudor.as_view(), name='deudor_id'),
     # delete
     path('prestamos/delete/<str:idPrestamo>',
