@@ -260,7 +260,7 @@ class SancionSerializer(serializers.ModelSerializer):
 class AsistenciaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Asistencia
-        fields = ['asistente', 'asiste']
+        fields = ['id','asistente', 'asiste']
 
 
 class ReunionSerializer(serializers.ModelSerializer):
