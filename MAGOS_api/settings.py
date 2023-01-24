@@ -144,18 +144,6 @@ WSGI_APPLICATION = 'MAGOS_api.wsgi.application'
 # Con variables de entorno, por seguridad estaba intentando hacerlo de esta forma pero
 # no me funcionaba, por eso lo dejo comentado y pongo los datos de la base de datos, 
 # pero en producción se debe hacer de esta forma. (deployment)
-"""
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'desarrollo2',
-        'USER': 'magos_ds2',
-        'PASSWORD': '4fb4E5Wu2MzIREvvDHvAvGaOK0DokkXI',
-        'HOST': 'dpg-cdonuila499b1llpnd8g-a.ohio-postgres.render.com',
-        'PORT': '',
-    }
-}
-"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -163,7 +151,7 @@ DATABASES = {
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
-        'PORT': '',
+        'PORT': '5432',
     }
 }
 
