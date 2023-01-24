@@ -63,8 +63,9 @@ class User(AbstractUser):
 
 
 class Cliente(User):
-    asociadoVinculado = models.OneToOneField(
-        User, name='asociadoVinculado', on_delete=models.CASCADE, related_name='cliente_asociadoVinculado', to_field="documento")
+    #asociadoVinculado = models.OneToOneField(User, name='asociadoVinculado', on_delete=models.CASCADE, related_name='cliente_asociadoVinculado', to_field="documento")
+    #llave foranea permite la relacion de uno a muchos. 
+    asociadoVinculado = models.ForeignKey(User, name='asociadoVinculado', on_delete=models.CASCADE, related_name='cliente_asociadoVinculado', to_field="documento") 
 
     class Meta:
         verbose_name = 'cliente'

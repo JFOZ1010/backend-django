@@ -109,7 +109,8 @@ class CreateClienteView(generics.CreateAPIView):
     serializer_class = ClienteSerializer
     permission_classes = [permissions.AllowAny]
 
-    def post(self, request: Request):
+    def post(self, request: Request):        
+
         data = request.data
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():

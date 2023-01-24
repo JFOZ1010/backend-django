@@ -77,13 +77,18 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ClienteSerializer(serializers.ModelSerializer):
 
+    #asociado = UserSerializer(many=True, read_only=True)
+
     class Meta:
         model = Cliente
+        #fields = '__all__'
+
         fields = [
             "id",
             "email",
             "password",
             "rol",
+            #"asociado", 
             "asociadoVinculado",
             "first_name",
             "last_name",
