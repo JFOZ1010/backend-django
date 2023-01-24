@@ -22,7 +22,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # dejo la secret key así porque está pudiendo leerse desde las variables de entorno, porque al momento de pasarla
 # directamente como en la linea 26, surgen bugs (I don't Know men)
 SECRET_KEY = os.environ.get('SECRET_KEY', default='secret-key')
-# SECRET_KEY = 'django-insecure-=%=e++q4!e05n@x&e1&4*$@n&d&z1ul$-7u5i6l&+i!4quy6oh'
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -151,7 +150,7 @@ DATABASES = {
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
-        'PORT': '5432',
+        'PORT': os.getenv('DB_PORT')
     }
 }
 
