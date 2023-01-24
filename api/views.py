@@ -11,8 +11,8 @@ from django.http import JsonResponse
 from django.http import Http404
 
 # Modulos locales
-from api.models import Abono, User, Ahorro, Prestamo, Multa, Reunion, ReunionVirtual, ReunionPresencial, Cliente
-from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer, AbonoSerializer, SancionSerializer, ReunionSerializer, ReunionPresencialSerializer, ReunionVirtualSerializer, ClienteSerializer
+from api.models import Abono, User, Ahorro, Prestamo, Multa, Reunion, ReunionVirtual, ReunionPresencial, Cliente,Asistencia
+from api.serializer import UserSerializer, AhorroSerializer, PrestamoSerializer, AbonoSerializer, SancionSerializer, ReunionSerializer, ReunionPresencialSerializer, ReunionVirtualSerializer, ClienteSerializer, AsistenciaSerializer
 from .tokens import create_jwt_pair_for_user
 
 # modulos nuevos que importo del framework DRF.
@@ -719,5 +719,74 @@ class ReunionVirtualDeleteView(generics.DestroyAPIView):
     def delete(self, request: Request, id):
         user = self.get_object(id)
         if user.delete():
+            return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+#Asistencias
+
+#Lista de todas las asistencias
+@method_decorator(csrf_exempt, name='dispatch')
+class listAsistencias(generics.ListAPIView):
+    serializer_class = AsistenciaSerializer
+    model = Asistencia
+    permission_classes = [permissions.AllowAny]
+    queryset = model.objects.all()
+
+# Busqueda de las asistencias por documentos
+@method_decorator(csrf_exempt, name='dispatch')
+class asistenciaId(generics.ListAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = AsistenciaSerializer
+    model = Asistencia
+
+    def get_queryset(self):
+        user= self.kwargs['asistente']
+        print(user)
+        siAsiste= Asistencia.objects.filter(asiste=True).exists()
+        if(siAsiste):
+            return Asistencia.objects.filter(asistente_id=user, asiste=True).all()
+        else:
+            datos = {'mensaje': 'asistencias no encontrados'}
+            return JsonResponse(datos)
+
+# Busqueda de las asistencias por documentos
+@method_decorator(csrf_exempt, name='dispatch')
+class inasistenciaId(generics.ListAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = AsistenciaSerializer
+    model = Asistencia
+
+    def get_queryset(self):
+        user= self.kwargs['asistente']
+        print(user)
+        noAsiste= Asistencia.objects.filter(asiste=False).exists()
+        print(noAsiste)
+        if(noAsiste):
+            return Asistencia.objects.filter(asistente_id=user, asiste=False).all()
+        else:
+            datos = {'mensaje': 'inasistencias no encontrados'}
+            return JsonResponse(datos)
+
+
+#Borrar asistencia 
+
+class deleteAsistencia(generics.GenericAPIView):
+
+    serializer_class = AsistenciaSerializer
+    model = Asistencia
+    permission_classes = [permissions.AllowAny]
+    queryset = Asistencia.objects.all()
+
+    def getAsistencia(self, id):
+        try:
+            return Asistencia.objects.get(id=id)
+        except Asistencia.DoesNotExist:
+            raise Http404("Asistencia no existe")
+
+    def delete(self, request, id=0, format=None):
+        asistencia = self.getAsistencia(id)
+
+        if asistencia.delete():
             return Response(status=status.HTTP_200_OK, data={"Borrado con éxito"})
         return Response(status=status.HTTP_204_NO_CONTENT)

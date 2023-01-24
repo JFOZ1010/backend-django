@@ -108,6 +108,13 @@ urlpatterns = [
     path("reportes/prestamostopclientes",
          reportesViews.Reporte_ClientesMasPrestamoMes.as_view(), name='clientes_mas_prestamos_mes'), 
     path("reportes/prestamoAsociado", reportesViews.Reporte_AsociadoPorPrestamo.as_view(), name='asociado_por_prestamo'),
-    path("reportes/multasAsociado", reportesViews.Reporte_MultasPorAsociado.as_view(), name='multas_por_asociado')
-
+    path("reportes/multasAsociado", reportesViews.Reporte_MultasPorAsociado.as_view(), name='multas_por_asociado'),
+#################################### ASISTENCIAS ###############################################
+     #Busqueda de las asistencias por el documento
+     path("asistencias/asiste/<str:asistente>",views.asistenciaId.as_view(), name='asistencia_id'),
+     #Busqueda de las inasistencias por el documento
+     path("asistencias/inasistencias/<str:asistente>",views.inasistenciaId.as_view(), name='inasistencia_id'),
+     path('asistencias/', views.listAsistencias.as_view(), name='asistencias_list'),
+     path('asistencias/delete/<int:id>', views.deleteAsistencia.as_view(), name='asistencias_delete'),
+     
 ]
