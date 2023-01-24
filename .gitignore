@@ -1,5 +1,5 @@
 .vscode/
-env/
+.env
 api/__pycache__/
 api/migrations/__pycache__/
 MAGOS_api/__pycache__/
