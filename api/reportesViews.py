@@ -1,6 +1,7 @@
 # Modulos DJANGO
 from django.db.models import Sum, Count, F
 import datetime
+import json
 
 # Modulos locales
 from api.models import Abono, User, Ahorro, Prestamo, Multa, Reunion, ReunionVirtual, ReunionPresencial, Cliente
@@ -124,6 +125,7 @@ class Reporte_ReunionesFechas(generics.GenericAPIView):
     serializer_class = ReunionSerializer
 
     def get(self, request: Request):
+        print(repr(request.data))
         _date = Range_date(request.data, request.data)
         start_date = _date.calDate_start()
         end_date = _date.calDate_end()
@@ -147,53 +149,67 @@ class Reporte_MontoMesPrestamo(generics.GenericAPIView):
     def get(self, request):
         loans_january = self.model.objects.filter(
             fecha__month=1
-        ).aggregate(january=Sum('monto'))
+        ).aggregate(january=Sum('monto'))['january']
         loans_february = self.model.objects.filter(
             fecha__month=2
-        ).aggregate(february=Sum('monto'))
+        ).aggregate(february=Sum('monto'))['february']
         loans_march = self.model.objects.filter(
             fecha__month=3
-        ).aggregate(march=Sum('monto'))
+        ).aggregate(march=Sum('monto'))['march']
         loans_april = self.model.objects.filter(
             fecha__month=4
-        ).aggregate(april=Sum('monto'))
+        ).aggregate(april=Sum('monto'))['april']
         loans_may = self.model.objects.filter(
             fecha__month=5
-        ).aggregate(may=Sum('monto'))
+        ).aggregate(may=Sum('monto'))['may']
         loans_june = self.model.objects.filter(
             fecha__month=6
-        ).aggregate(june=Sum('monto'))
+        ).aggregate(june=Sum('monto'))['june']
         loans_july = self.model.objects.filter(
             fecha__month=7
-        ).aggregate(july=Sum('monto'))
+        ).aggregate(july=Sum('monto'))['july']
         loans_august = self.model.objects.filter(
             fecha__month=8
-        ).aggregate(august=Sum('monto'))
+        ).aggregate(august=Sum('monto'))['august']
         loans_september = self.model.objects.filter(
             fecha__month=9
-        ).aggregate(september=Sum('monto'))
+        ).aggregate(september=Sum('monto'))['september']
         loans_octuber = self.model.objects.filter(
             fecha__month=10
-        ).aggregate(octuber=Sum('monto'))
+        ).aggregate(octuber=Sum('monto'))['octuber']
         loans_november = self.model.objects.filter(
             fecha__month=11
-        ).aggregate(november=Sum('monto'))
+        ).aggregate(november=Sum('monto'))['november']
         loans_december = self.model.objects.filter(
             fecha__month=12
-        ).aggregate(december=Sum('monto'))
-        return Response({
-            "Enero": loans_january['january'],
-            "Febrero": loans_february['february'],
-            "Marzo": loans_march['march'],
-            "Abril": loans_april['april'],
-            "Mayo": loans_may['may'],
-            "Junio": loans_june['june'],
-            "Julio": loans_july['july'],
-            "Agosto": loans_august['august'],
-            "Septiembre": loans_september['september'],
-            "Octubre": loans_octuber['octuber'],
-            "Noviembre": loans_november['november'],
-            "Diciembre": loans_december['december']
+        ).aggregate(december=Sum('monto'))['december']
+
+        loans_january = 0 if loans_january == None else loans_january
+        loans_february = 0 if loans_february == None else loans_february
+        loans_march = 0 if loans_march == None else loans_march
+        loans_april = 0 if loans_april == None else loans_april
+        loans_may = 0 if loans_may == None else loans_may
+        loans_june = 0 if loans_june == None else loans_june
+        loans_july = 0 if loans_july == None else loans_july
+        loans_august = 0 if loans_august == None else loans_august
+        loans_september = 0 if loans_september == None else loans_september
+        loans_octuber = 0 if loans_octuber == None else loans_octuber
+        loans_november = 0 if loans_november == None else loans_november
+        loans_december = 0 if loans_december == None else loans_december
+
+        return Response(data={
+            "Enero": loans_january,
+            "Febrero": loans_february,
+            "Marzo": loans_march,
+            "Abril": loans_april,
+            "Mayo": loans_may,
+            "Junio": loans_june,
+            "Julio": loans_july,
+            "Agosto": loans_august,
+            "Septiembre": loans_september,
+            "Octubre": loans_octuber,
+            "Noviembre": loans_november,
+            "Diciembre": loans_december
         }, status=status.HTTP_200_OK)
 
 # Clientes que más préstamos realizan (fecha inicial - fecha final)
@@ -217,7 +233,9 @@ class Reporte_ClientesMasPrestamoMes(generics.GenericAPIView):
         )
         return Response(data=clientes, status=status.HTTP_200_OK)
 
-#Author: JFx0Z0r - Juan Felipe Osorio.
+# Author: JFx0Z0r - Juan Felipe Osorio.
+
+
 class Reporte_AsociadoPorPrestamo(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
     model = Prestamo
@@ -236,10 +254,12 @@ class Reporte_AsociadoPorPrestamo(generics.GenericAPIView):
         ).annotate(
             prestamos=Count('deudor', distinct=False)
         )
-        return Response(data = asociados, status=status.HTTP_200_OK)
+        return Response(data=asociados, status=status.HTTP_200_OK)
 
-#reporte de cantidad de multas por Asociados. 
-#Author: JFx0Z0r - Juan Felipe Osorio.
+# reporte de cantidad de multas por Asociados.
+# Author: JFx0Z0r - Juan Felipe Osorio.
+
+
 class Reporte_MultasPorAsociado(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
     model = Multa
@@ -258,4 +278,4 @@ class Reporte_MultasPorAsociado(generics.GenericAPIView):
         ).annotate(
             cantidad=Count('asociadoReferente', distinct=False)
         )
-        return Response(data = multas, status=status.HTTP_200_OK)
+        return Response(data=multas, status=status.HTTP_200_OK)
